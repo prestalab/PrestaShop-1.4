@@ -1001,6 +1001,14 @@ class ToolsCore
 		if (_PS_MB_STRING_)
 			$str = mb_strtolower($str, 'utf-8');
 
+		//fix cyrilic SEO URL
+		if (preg_match('/[А-Яа-я]+/', $str))
+		{
+			$cyr = array('а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я');
+			$lat = array('a', 'b', 'v', 'g', 'd', 'e', 'e', 'j', 'z', 'i', 'y', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'f', 'h', 'c', 'ch', 'sh', 'shh', '', 'y', '', 'e', 'u', 'ja');
+			$str = str_replace($cyr, $lat, $str);
+		}
+
 		// Remove all non-whitelist chars.
 		$str = preg_replace(array('/[^a-zA-Z0-9\s\'\:\/\[\]-]/', '/[\s\'\:\/\[\]-]+/', '/[ ]/', '/[\/]/'),
 					 array('', ' ', '-', '-'), self::replaceAccentedChars(trim($str)));

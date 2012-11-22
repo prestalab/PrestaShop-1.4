@@ -27,6 +27,38 @@
 if (!id_language)
 	var id_language = Number(1);
 
+function translit(str)
+{
+	var slash = "";
+
+	var LettersFrom = "абвгдеёжзийклмнопрстуфхыюэ";
+	var LettersTo = "abvgdeejziyklmnoprstufhyue";
+
+	var BiLetters = {
+		"ц":"ts", "ч":"ch",
+		"ш":"sh", "щ":"shh", "я":"ja"
+	};
+	str = str.replace(/(ь|ъ)/g, "");
+
+	var _str = "";
+	for (var x = 0; x < str.length; x++)
+		if ((index = LettersFrom.indexOf(str.charAt(x))) > -1)
+			_str += LettersTo.charAt(index);
+		else
+			_str += str.charAt(x);
+	str = _str;
+
+	var _str = "";
+	for (var x = 0; x < str.length; x++)
+		if (BiLetters[str.charAt(x)])
+			_str += BiLetters[str.charAt(x)];
+		else
+			_str += str.charAt(x);
+	str = _str;
+
+	return str;
+}
+
 function str2url(str,encoding,ucfirst)
 {
 	str = str.toUpperCase();
@@ -51,6 +83,8 @@ function str2url(str,encoding,ucfirst)
 	str = str.replace(/[\u0153]/g,'oe');
 	str = str.replace(/[\u013E\u013A]/g,'l');
 	str = str.replace(/[\u0155]/g,'r');
+
+	str = translit(str);
 
 	str = str.replace(/[^a-z0-9\s\'\:\/\[\]-]/g,'');
 	str = str.replace(/[\s\'\:\/\[\]-]+/g,' ');
@@ -410,7 +444,7 @@ if (helpboxes)
 
 /**
  * Deprecated
- * 
+ *
  * @param id_product
  * @param id_image
  */
@@ -836,7 +870,7 @@ function managePermissionsCheckbox(name)
 {
 	if ($('#form_permissions .'+name+'[checked=checked]').length == $('.'+name).length)
 		$('#form_permissions #'+name+'all').attr('checked', 'checked');
-	
+
 	$('#form_permissions #'+name+'all').click(function() {
 		if ($('#form_permissions #'+name+'all').attr('checked'))
 		{
@@ -867,7 +901,7 @@ function managePermissions()
 		if ($(this).parent().parent().find('input[checked=checked]').length == ($(this).parent().parent().find('input').length - 1))
 			$(this).attr('checked', 'checked');
 	});
-	
+
 	$('#form_permissions .all').click(function() {
 		if ($(this).attr('checked'))
 			$(this).parent().parent().find('input[type=checkbox]').attr('checked', 'checked');

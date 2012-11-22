@@ -1,0 +1,30 @@
+<?php
+
+global $_MODULE;
+$_MODULE = array();
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_ee1e9cbe2a66a3a7ecc434049bd67339'] = 'Союзнический Бумажник ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_69a1a3ad8dd5da6db3c4da838a0cf9c7'] = 'Действительно ли Вы уверены, что хотите удалить свои детали? ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_449602445d0a5f0612e7ccac073f6c9e'] = 'Примите платежи с Союзническим Бумажником теперь. ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_18071bcaa1bfb301a06e742589b0e671'] = 'Действительно ли Вы готовы начать принимать 164 различных валюты в почти каждом бренде карты, прямом дебете, и ACH? ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_4bc8c0475362544165beb73c959ff0d5'] = 'Действительно ли Вы готовы защитить свой бизнес с современной безопасностью? ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_e7f7a7fbd7a2aee4a841df02673b84ee'] = 'Действительно ли Вы готовы видеть больше непринужденности в своем бизнесе с нашим отслеживанием и созданием отчетов? ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_025a0837741cee4848215e3a34483c7b'] = 'Соедините свое хранилище PrestaShop с самым инновационным и полнофункциональным платежным доступным решением. См. свою прибыль сегодня и используйте модуль ниже. ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_a0f10515a6cd3f7d2956509b24327dba'] = 'зарегистрируйтесь в системе сегодня ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_3363195c99c79528c3f4593ed3dc6f35'] = 'и начните обрабатывать через всего 24 часа на уровне, запускающемся столь же низко как 1.95 %. ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_d2198f8429396f037b796aa94ece06ac'] = 'Союзнический ID Торговца Бумажника требуется ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_3eb6a7185343bd77dedac812c14aee03'] = 'Союзнический ID Сайта Бумажника требуется ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_c86005ff4481971ebf5730ccc00cd2c1'] = 'Полный URL требуется и должен быть корректным. ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_f4d1ea475eaa85102e2b4e6d95da84bd'] = 'Подтверждение ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_c888438d14855d7d96a2724ee9c306bd'] = 'Настройки обновляются ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_6357d3551190ec7e79371a8570121d3a'] = 'Есть ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_4ce81305b7edb043d0a7a5c75cab17d0'] = 'Есть ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_07213a0161f52846ab198be103b5ab43'] = 'ошибки ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_cb5e100e5a9a3e7f6d1fd97512215282'] = 'ошибка ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_f4f70727dc34561dfde1a3c529b6205c'] = 'Настройки ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_00be0ca8c24aec576142d9a00a5de0db'] = 'Союзнический ID Торговца Бумажника ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_30d914c2c970bc8264f4f4108e3a6602'] = 'Союзнический ID Сайта Бумажника ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_3ca7ca93df600ffff03ee0e7eac6950f'] = 'Перенаправление URL ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_158135b3055bf30a67347a09e85c6bce'] = 'Пожалуйста, введите URL страницы, где клиенты будут перенаправлены после их покупок. ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_b17f3f4dcf653a5776792498a9b44d6a'] = 'Настройки обновления ';
+$_MODULE['<{alliedwallet}prestashop>alliedwallet_24fc650b2c2e8c2f119a577d67efe0c5'] = 'Плата с AlliedWallet ';
+$_MODULE['<{alliedwallet}prestashop>validation_f674cd246b3a1611c24a9f2b93d85ac0'] = 'Запрещенное Действие. ';

@@ -296,6 +296,13 @@ class	CookieCore
 			$time = time() - 1;
 		}
 
+		// fix error 500
+		$headers = headers_list();
+		header('Set-Cookie:');
+		foreach($headers as $val)
+			if(strtolower(substr($val, 0, 12)) == 'set-cookie: ' AND !strpos($val, ' '.$this->_name.'='))
+				header($val, false);
+
 		if (PHP_VERSION_ID <= 50200) /* PHP version > 5.2.0 */
 			return setcookie($this->_name, $content, $time, $this->_path, $this->_domain, 0);
 		else

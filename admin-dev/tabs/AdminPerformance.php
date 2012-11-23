@@ -56,6 +56,8 @@ class AdminPerformance extends AdminTab
 					$this->_errors[] = Tools::displayError('To use Memcached, you must install the Memcache PECL extension on your server.').' <a href="http://www.php.net/manual/en/memcache.installation.php">http://www.php.net/manual/en/memcache.installation.php</a>';
 				elseif ($cache_active AND $caching_system == 'CacheFS' AND !is_writable(_PS_CACHEFS_DIRECTORY_))
 					$this->_errors[] = Tools::displayError('To use CacheFS the directory').' '.realpath(_PS_CACHEFS_DIRECTORY_).' '.Tools::displayError('must be writable');
+				if ($cache_active AND $caching_system == 'CacheAPC' AND !extension_loaded('apc'))
+					$this->_errors[] = Tools::displayError('To use APC, you must install the APC extension on your server.');
 
 				if ($caching_system == 'CacheFS' && $cache_active)
 				{
@@ -69,6 +71,8 @@ class AdminPerformance extends AdminTab
 					}
 				}
 				elseif($caching_system == 'MCached' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'MCached')
+					Cache::getInstance()->flush();
+				elseif($caching_system == 'CacheAPC' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheAPC')
 					Cache::getInstance()->flush();
 				if (!sizeof($this->_errors))
 				{
@@ -230,6 +234,8 @@ class AdminPerformance extends AdminTab
 		$warnings = array();
 		if (!extension_loaded('memcache'))
 			$warnings[] = $this->l('To use Memcached, you must install the Memcache PECL extension on your server.').' <a href="http://www.php.net/manual/en/memcache.installation.php">http://www.php.net/manual/en/memcache.installation.php</a>';
+		if (!extension_loaded('apc'))
+			$warnings[] = $this->l('To use APC, you must install the APC extension on your server.');
 		if (!is_writable(_PS_CACHEFS_DIRECTORY_))
 			$warnings[] = $this->l('To use CacheFS the directory').' '.realpath(_PS_CACHEFS_DIRECTORY_).' '.$this->l('must be writable');
 
@@ -254,10 +260,15 @@ class AdminPerformance extends AdminTab
 									$(\'#memcachedServers\').show();
 									$(\'#directory_depth\').hide();
 								}
-								else
+								if ($(\'#caching_system option:selected\').val() == \'CacheFS\')
 								{
 									$(\'#memcachedServers\').hide();
 									$(\'#directory_depth\').show();
+								}
+								if ($(\'#caching_system option:selected\').val() == \'CacheAPC\')
+								{
+									$(\'#memcachedServers\').hide();
+									$(\'#directory_depth\').hide();
 								}
 							}
 							$(\'#addMemcachedServer\').click(function() {
@@ -441,6 +452,7 @@ class AdminPerformance extends AdminTab
 						<select name="caching_system" id="caching_system">
 							<option value="MCached" '.(_PS_CACHING_SYSTEM_ == 'MCached' ? 'selected="selected"' : '' ).'>'.$this->l('Memcached').'</option>
 							<option value="CacheFS" '.(_PS_CACHING_SYSTEM_ == 'CacheFS' ? 'selected="selected"' : '' ).'>'.$this->l('File System').'</option>
+							<option value="CacheAPC" '.(_PS_CACHING_SYSTEM_ == 'CacheAPC' ? 'selected="selected"' : '' ).'>'.$this->l('APC').'</option>
 						</select>
 					</div>
 					<div id="directory_depth">

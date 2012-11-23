@@ -747,7 +747,17 @@ abstract class ModuleCore
 			if (method_exists($moduleInstance, 'hook'.$hook_name))
 			{
 				$hookArgs['altern'] = ++$altern;
-				$display = $moduleInstance->{'hook'.$hook_name}($hookArgs);
+				if($array['time']==0)
+					$display = $moduleInstance->{'hook'.$hook_name}($hookArgs);
+				else
+				{
+					$cache_id=$array['module'].'|'.$hook_name.'|'.$hookArgs['cookie']->id_lang;
+					if(!($display = Cache::getInstance()->get(md5($cache_id))))
+					{
+						$display = $moduleInstance->{'hook'.$hook_name}($hookArgs);
+						Cache::getInstance()->set(md5($cache_id), $display, $array['time']);
+					}
+				}
 
 				if ($array['live_edit'] && ((Tools::isSubmit('live_edit') && Tools::getValue('ad') && (Tools::getValue('liveToken') == sha1(Tools::getValue('ad')._COOKIE_KEY_)))))
 				{

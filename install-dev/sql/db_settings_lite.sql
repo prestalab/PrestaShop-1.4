@@ -76414,3 +76414,19 @@ INSERT INTO `PREFIX_lang` (`id_lang`, `name`, `active`, `iso_code`, `language_co
 
 INSERT IGNORE INTO `PREFIX_cms_category_lang` (`id_cms_category`, `id_lang`, `name`, `description`, `link_rewrite`, `meta_title`, `meta_keywords`, `meta_description`) VALUES
 (1, 6, 'Главная', '', 'home', NULL, NULL, NULL);
+
+/* Cache system */
+ALTER TABLE  `PREFIX_hook_module` ADD  `time` INT( 10 ) NOT NULL DEFAULT  '0';
+INSERT INTO `PREFIX_tab` (`id_tab`, `id_parent`, `class_name`, `module`, `position`) VALUES
+(89, 8, 'AdminCache', '', 13);
+INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) VALUES
+(89, 1, 'Cache'),
+(89, 2, 'Cache'),
+(89, 3, 'Cache'),
+(89, 4, 'Cache'),
+(89, 5, 'Cache'),
+(89, 6, 'Кэш');
+INSERT INTO `PREFIX_configuration` (`name`, `value`) VALUES
+('PL_CACHE_LIST', '86400'),
+('PL_CACHE_LONG', '31536000'),
+('PL_CACHE_SHORT', '86400');

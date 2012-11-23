@@ -104,11 +104,15 @@ abstract class ModuleCore
 		{
 			if (self::$modulesCache === null)
 			{
-				self::$modulesCache = array();
-				$db = Db::getInstance();
-				$result = $db->ExecuteS('SELECT * FROM `'.bqSQL(_DB_PREFIX_.$this->table).'`', false);
-				while ($row = $db->nextRow($result))
-					self::$modulesCache[$row['name']] = $row;
+				self::$modulesCache = Cache::getInstance()->get(md5('modulesCache'));
+				if(!self::$modulesCache)
+				{
+					$db = Db::getInstance();
+					$result = $db->ExecuteS('SELECT * FROM `'.bqSQL(_DB_PREFIX_.$this->table).'`', false);
+					while ($row = $db->nextRow($result))
+						self::$modulesCache[$row['name']] = $row;
+					Cache::getInstance()->set(md5('modulesCache'), self::$modulesCache);
+				}
 			}
 			if (isset(self::$modulesCache[$this->name]))
 			{
@@ -705,12 +709,12 @@ abstract class ModuleCore
 			$hookArgs['cart'] = $cart;
 		}
 		$hook_name = strtolower($hook_name);
-
-		if (!isset(self::$_hookModulesCache))
+		self::$_hookModulesCache=Cache::getInstance()->get(md5('hookModulesCache'));
+		if (!isset(self::$_hookModulesCache)||!self::$_hookModulesCache)
 		{
 			$db = Db::getInstance(_PS_USE_SQL_SLAVE_);
 			$result = $db->ExecuteS('
-			SELECT h.`name` hook, m.`id_module`, h.`id_hook`, m.`name` module, h.`live_edit`
+			SELECT h.`name` hook, m.`id_module`, h.`id_hook`, m.`name` module, h.`live_edit`, hm.`time`
 			FROM `'._DB_PREFIX_.'module` m
 			LEFT JOIN `'._DB_PREFIX_.'hook_module` hm ON (hm.`id_module` = m.`id_module`)
 			LEFT JOIN `'._DB_PREFIX_.'hook` h ON (hm.`id_hook` = h.`id_hook`)
@@ -719,13 +723,16 @@ abstract class ModuleCore
 			self::$_hookModulesCache = array();
 
 			if ($result)
+			{
 				while ($row = $db->nextRow())
 				{
 					$row['hook'] = strtolower($row['hook']);
 					if (!isset(self::$_hookModulesCache[$row['hook']]))
 						self::$_hookModulesCache[$row['hook']] = array();
-					self::$_hookModulesCache[$row['hook']][] = array('id_hook' => $row['id_hook'], 'module' => $row['module'], 'id_module' => $row['id_module'], 'live_edit' => $row['live_edit']);
+					self::$_hookModulesCache[$row['hook']][] = array('id_hook' => $row['id_hook'], 'module' => $row['module'], 'id_module' => $row['id_module'], 'live_edit' => $row['live_edit'], 'time' => $row['time']);
 				}
+				Cache::getInstance()->set(md5('hookModulesCache'), self::$_hookModulesCache);
+			}
 		}
 
 		if (!isset(self::$_hookModulesCache[$hook_name]))

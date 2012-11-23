@@ -94,8 +94,9 @@ class ConfigurationCore extends ObjectModel
 
 		// If the key is invalid or if it does not exists, do nothing.
 	 	if (!Validate::isConfigName($key))
-			return false;		
+			return false;
 
+		self::dropCache();
 		/* Delete the key from the main configuration table */
 		if (Db::getInstance()->Execute('DELETE FROM `'._DB_PREFIX_.'configuration` WHERE `id_configuration` = '.(int)self::$_CONF_IDS[$key].' LIMIT 1'))
 			unset(self::$_CONF[$key]);
@@ -142,6 +143,8 @@ class ConfigurationCore extends ObjectModel
 			/* Add multilingual values */
 			foreach ($values as $k => $value)
 				self::$_CONF_LANG[(int)$k][$key] = $value;
+
+		self::dropCache();
 	}
 
 	/**
@@ -225,6 +228,8 @@ class ConfigurationCore extends ObjectModel
 		$newConfig->name = $key;
 		if (!is_null($value))
 			$newConfig->value = $value;
+
+		self::dropCache();
 		return $newConfig->add() ? (int)$newConfig->id : false;
 	}
 
@@ -247,6 +252,8 @@ class ConfigurationCore extends ObjectModel
 
 		$db = Db::getInstance();
 		$current_value = Configuration::get($key);
+
+		self::dropCache();
 
 		/* Update classic values */
 		if (!is_array($values))
@@ -317,9 +324,13 @@ class ConfigurationCore extends ObjectModel
 
 	public static function loadConfiguration()
 	{
-		self::$_CONF = array();
-		self::$_CONF_LANG = array();
-		self::$_CONF_IDS = array();
+		$cache_instance=Cache::getInstance();
+		self::$_CONF=$cache_instance->get(md5('configuration_conf'));
+		self::$_CONF_LANG=$cache_instance->get(md5('configuration_conf_lang'));
+		self::$_CONF_IDS=$cache_instance->get(md5('configuration_conf_ids'));
+
+		if(self::$_CONF&&self::$_CONF_LANG&&self::$_CONF_IDS)
+			return;
 
 		$db = Db::getInstance();
 		$result = $db->ExecuteS('
@@ -328,6 +339,7 @@ class ConfigurationCore extends ObjectModel
 		LEFT JOIN `'._DB_PREFIX_.'configuration_lang` cl ON (c.id_configuration = cl.id_configuration)', false);
 
 		if ($result)
+		{
 			while ($row = $db->nextRow($result))
 			{
 				self::$_CONF_IDS[$row['name']] = (int)$row['id_configuration'];
@@ -335,6 +347,18 @@ class ConfigurationCore extends ObjectModel
 				if ($row['id_lang'])
 					self::$_CONF_LANG[(int)$row['id_lang']][$row['name']] = $row['cl_value'];
 			}
+			$cache_instance->set(md5('configuration_conf'),self::$_CONF);
+			$cache_instance->set(md5('configuration_conf_lang'),self::$_CONF_LANG);
+			$cache_instance->set(md5('configuration_conf_ids'),self::$_CONF_IDS);
+		}
+	}
+
+	public static function dropCache()
+	{
+		$cache_instance=Cache::getInstance();
+		$cache_instance->delete(md5('configuration_conf'));
+		$cache_instance->delete(md5('configuration_conf_lang'));
+		$cache_instance->delete(md5('configuration_conf_ids'));
 	}
 
 	/**

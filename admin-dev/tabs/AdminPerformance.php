@@ -317,8 +317,11 @@ class AdminPerformance extends AdminTab
 
 				<label>'.$this->l('Minify HTML').' </label>
 				<div class="margin-form">
-					<input type="radio" value="1" name="PS_HTML_THEME_COMPRESSION" id="PS_HTML_THEME_COMPRESSION_1" '.(Configuration::get('PS_HTML_THEME_COMPRESSION') ? 'checked="checked"' : '').' />
-					<label class="t" for="PS_HTML_THEME_COMPRESSION_1">'.$this->l('Minify HTML after "smarty compile" execution.').'</label>
+					<input type="radio" value="1" name="PS_HTML_THEME_COMPRESSION" id="PS_HTML_THEME_COMPRESSION_1" '.(Configuration::get('PS_HTML_THEME_COMPRESSION')==1 ? 'checked="checked"' : '').' />
+					<label class="t" for="PS_HTML_THEME_COMPRESSION_1">'.$this->l('Minify HTML after "smarty compile" execution (as output filter). Maximum compression.').'</label>
+					<br />
+					<input type="radio" value="2" name="PS_HTML_THEME_COMPRESSION" id="PS_HTML_THEME_COMPRESSION_2" '.(Configuration::get('PS_HTML_THEME_COMPRESSION')==2 ? 'checked="checked"' : '').' />
+					<label class="t" for="PS_HTML_THEME_COMPRESSION_2">'.$this->l('Minify HTML after "smarty compile" execution (as pre filter). Maximum performance.').'</label>
 					<br />
 					<input type="radio" value="0" name="PS_HTML_THEME_COMPRESSION" id="PS_HTML_THEME_COMPRESSION_0" '.(Configuration::get('PS_HTML_THEME_COMPRESSION') ? '' : 'checked="checked"').' />
 					<label class="t" for="PS_HTML_THEME_COMPRESSION_0">'.$this->l('Keep HTML as original').'</label>
@@ -326,8 +329,11 @@ class AdminPerformance extends AdminTab
 
 				<label>'.$this->l('Compress inline JavaScript in HTML').' </label>
 				<div class="margin-form">
-					<input type="radio" value="1" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_1" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION') ? 'checked="checked"' : '').' />
-					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_1">'.$this->l('Compress inline JavaScript in HTML after "smarty compile" execution').'</label>
+					<input type="radio" value="1" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_1" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION')==1 ? 'checked="checked"' : '').' />
+					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_1">'.$this->l('Compress inline JavaScript in HTML after "smarty compile" execution (as output filter). Maximum compression').'</label>
+					<br />
+					<input type="radio" value="2" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_2" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION')==2 ? 'checked="checked"' : '').' />
+					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_2">'.$this->l('Compress inline JavaScript in HTML after "smarty compile" execution (as pre filter). Maximum performance').'</label>
 					<br />
 					<input type="radio" value="0" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_0" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION') ? '' : 'checked="checked"').' />
 					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_0">'.$this->l('Keep inline JavaScript in HTML as original').'</label>

@@ -52,10 +52,14 @@ if (_PS_FORCE_SMARTY_2_)
 }
 else
 {
-	if (Configuration::get('PS_HTML_THEME_COMPRESSION'))
+	if (Configuration::get('PS_HTML_THEME_COMPRESSION')==1)
 		$smarty->registerFilter('output', 'smartyMinifyHTML');
-	if (Configuration::get('PS_JS_HTML_THEME_COMPRESSION'))
+	elseif (Configuration::get('PS_HTML_THEME_COMPRESSION')==2)
+		$smarty->registerFilter('pre', 'smartyMinifyHTML');
+	if (Configuration::get('PS_JS_HTML_THEME_COMPRESSION')==1)
 		$smarty->registerFilter('output', 'smartyPackJSinHTML');
+	elseif (Configuration::get('PS_JS_HTML_THEME_COMPRESSION')==2)
+		$smarty->registerFilter('pre', 'smartyPackJSinHTML');
 }
 
 smartyRegisterFunction($smarty, 'modifier', 'truncate', 'smarty_modifier_truncate');

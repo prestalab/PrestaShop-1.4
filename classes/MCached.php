@@ -60,6 +60,7 @@ class MCachedCore extends Cache
 		if ($this->_memcacheObj->set($key, $value, 0, $expire))
 		{
 			$this->_keysCached[$key] = true;
+			$this->_writeKeys();
 			return $key;
 		}
 	}
@@ -106,7 +107,7 @@ class MCachedCore extends Cache
 			foreach ($res[1] as $table)
 				if (!isset($this->_tablesCached[$table][$key]))
 					$this->_tablesCached[$table][$key] = true;
-		$this->_writeKeys();
+		$this->_writeTables();
 	}
 	
 	public function delete($key, $timeout = 0)
@@ -115,6 +116,7 @@ class MCachedCore extends Cache
 			return false;
 		if (!empty($key) AND $this->_memcacheObj->delete($key, $timeout))
 			unset($this->_keysCached[$key]);
+		$this->_writeKeys();
 	}
 
 	public function deleteQuery($query)
@@ -133,7 +135,7 @@ class MCachedCore extends Cache
 					}
 					unset($this->_tablesCached[$table]);
 				}
-		$this->_writeKeys();
+		$this->_writeTables();
 	}
 
 	protected function close()
@@ -157,6 +159,12 @@ class MCachedCore extends Cache
 		if (!$this->_isConnected)
 			return false;
 		$this->_memcacheObj->set('keysCached', $this->_keysCached, 0, 0);
+	}
+
+	private function _writeTables()
+	{
+		if (!$this->_isConnected)
+			return false;
 		$this->_memcacheObj->set('tablesCached', $this->_tablesCached, 0, 0);
 	}
 	

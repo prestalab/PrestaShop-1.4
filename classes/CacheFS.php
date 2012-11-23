@@ -49,6 +49,7 @@ class CacheFSCore extends Cache {
 		if (@file_put_contents($path.$key, serialize($value)))
 		{
 			$this->_keysCached[$key] = true;
+			$this->_writeKeys();
 			return $key;
 		}
 		return false;
@@ -113,7 +114,7 @@ class CacheFSCore extends Cache {
 			foreach ($res[1] as $table)
 				if (!isset($this->_tablesCached[$table][$key]))
 					$this->_tablesCached[$table][$key] = true;
-		$this->_writeKeys();
+		$this->_writeTables();
 	}
 
 	public function delete($key, $timeout = 0)
@@ -128,6 +129,7 @@ class CacheFSCore extends Cache {
 		if (!unlink($path.$key))
 			return false;
 		unset($this->_keysCached[$key]);
+		$this->_writeKeys();
 		return true;
 	}
 
@@ -145,16 +147,22 @@ class CacheFSCore extends Cache {
 					}
 					unset($this->_tablesCached[$table]);
 				}
-		$this->_writeKeys();
+		$this->_writeTables();
 	}
 
 	public function flush()
 	{
+		self::deleteCacheDirectory();
+		self::createCacheDirectories(Configuration::get('PS_CACHEFS_DIRECTORY_DEPTH'));
 	}
 
 	private function _writeKeys()
 	{
 		@file_put_contents(_PS_CACHEFS_DIRECTORY_.'keysCached', serialize($this->_keysCached));
+	}
+
+	private function _writeTables()
+	{
 		@file_put_contents(_PS_CACHEFS_DIRECTORY_.'tablesCached', serialize($this->_tablesCached));
 	}
 

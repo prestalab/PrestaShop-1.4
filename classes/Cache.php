@@ -44,12 +44,15 @@ abstract class CacheCore
 												'pagenotfound',
 												'page_viewed');
 	public static function getInstance()
-	{	
+	{
+		if(!_PS_CACHE_ENABLED_||!in_array(_PS_CACHING_SYSTEM_, array('CacheFS','CacheAPC','MCached')))
+			return new CacheNo();
+
 		if (!isset(self::$_instance))
 		{
 			$caching_system =  _PS_CACHING_SYSTEM_;
 			self::$_instance = new $caching_system();
-			
+
 		}
 		return self::$_instance;
 	}

@@ -163,6 +163,7 @@ class AdminPerformance extends AdminTab
 			{
 				if (!Configuration::updateValue('PS_CSS_THEME_CACHE', (int)Tools::getValue('PS_CSS_THEME_CACHE')) ||
 					!Configuration::updateValue('PS_JS_THEME_CACHE', (int)Tools::getValue('PS_JS_THEME_CACHE')) ||
+					!Configuration::updateValue('PL_JQUERY', (int)Tools::getValue('PL_JQUERY')) ||
 					!Configuration::updateValue('PS_HTML_THEME_COMPRESSION', (int)Tools::getValue('PS_HTML_THEME_COMPRESSION')) ||
 					!Configuration::updateValue('PS_JS_HTML_THEME_COMPRESSION', (int)Tools::getValue('PS_JS_HTML_THEME_COMPRESSION')))
 					$this->_errors[] = Tools::displayError('Unknown error.');
@@ -330,6 +331,18 @@ class AdminPerformance extends AdminTab
 					<br />
 					<input type="radio" value="0" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_0" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION') ? '' : 'checked="checked"').' />
 					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_0">'.$this->l('Keep inline JavaScript in HTML as original').'</label>
+				</div>
+
+				<label>'.$this->l('Jquery from CDN').' </label>
+				<div class="margin-form">
+					<input type="radio" value="1" name="PL_JQUERY" id="PL_JQUERY_1" '.(Configuration::get('PL_JQUERY')==1 ? 'checked="checked"' : '').' />
+					<label class="t" for="PL_JQUERY_1">'.$this->l('From Google').'</label>
+					<br />
+					<input type="radio" value="2" name="PL_JQUERY" id="PL_JQUERY_2" '.(Configuration::get('PL_JQUERY')==2 ? 'checked="checked"' : '').' />
+					<label class="t" for="PL_JQUERY_2">'.$this->l('From Yandex').'</label>
+					<br />
+					<input type="radio" value="0" name="PL_JQUERY" id="PL_JQUERY_0" '.(Configuration::get('PL_JQUERY') ? '' : 'checked="checked"').' />
+					<label class="t" for="PL_JQUERY_0">'.$this->l('From local storage').'</label>
 				</div>
 
 				<div class="margin-form">

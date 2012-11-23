@@ -451,7 +451,15 @@ class FrontControllerCore
 		global $cookie;
 
 		Tools::addCSS(_THEME_CSS_DIR_.'global.css', 'all');
-		Tools::addJS(array(_PS_JS_DIR_.'jquery/jquery.min.js', _PS_JS_DIR_.'jquery/jquery.easing.1.3.js', _PS_JS_DIR_.'tools.js'));
+
+		if(Configuration::get('PL_JQUERY')==1)
+			Tools::addJS('http'.($this->ssl?'s':'').'://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js');
+		elseif(Configuration::get('PL_JQUERY')==2)
+			Tools::addJS('http'.($this->ssl?'s':'').'://yandex.st/jquery/1.8.2/jquery.min.js');
+		else
+			Tools::addJS(_PS_JS_DIR_.'jquery/jquery.min.js');
+
+		Tools::addJS(array(_PS_JS_DIR_.'jquery/jquery.easing.1.3.js', _PS_JS_DIR_.'tools.js'));
 		if (Tools::isSubmit('live_edit') && Tools::getValue('ad') && Tools::getValue('liveToken') == sha1(Tools::getValue('ad')._COOKIE_KEY_))
 		{
 			Tools::addJS(array(_PS_JS_DIR_.'jquery/jquery-ui-1.8.10.custom.min.js', _PS_JS_DIR_.'jquery/jquery.fancybox-1.3.4.js',

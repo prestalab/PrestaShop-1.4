@@ -90,63 +90,72 @@ class CategoryControllerCore extends FrontController
 			$this->errors[] = Tools::displayError('Missing category ID');
 		else
 		{
-			if (!Validate::isLoadedObject($this->category))
-				$this->errors[] = Tools::displayError('Category does not exist');
-			elseif (!$this->category->checkAccess((int)(self::$cookie->id_customer)))
-				$this->errors[] = Tools::displayError('You do not have access to this category.');
-			elseif (!$this->category->active)
-				self::$smarty->assign('category', $this->category);
-			else
+			$id_lang = (int)(self::$cookie->id_lang);
+			$id_currency = (int)(self::$cookie->id_currency);
+			$this->smartyCacheId = 'CategoryController|'.$id_lang.'-'.$id_currency.'-'.$this->category->id.'-'.Tools::getValue('orderby').'-'.Tools::getValue('orderway').'-'.Tools::getValue('p');
+			self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST'); // 24 Hours
+			Tools::enableCache();
+			if(!self::$smarty->isCached(_PS_THEME_DIR_.'category.tpl', $this->smartyCacheId))
 			{
-				$rewrited_url = self::$link->getCategoryLink((int)$this->category->id, $this->category->link_rewrite);
-
-				/* Scenes  (could be externalised to another controler if you need them */
-				self::$smarty->assign('scenes', Scene::getScenes((int)($this->category->id), (int)(self::$cookie->id_lang), true, false));
-				
-				/* Scenes images formats */
-				if ($sceneImageTypes = ImageType::getImagesTypes('scenes'))
+				if (!Validate::isLoadedObject($this->category))
+					$this->errors[] = Tools::displayError('Category does not exist');
+				elseif (!$this->category->checkAccess((int)(self::$cookie->id_customer)))
+					$this->errors[] = Tools::displayError('You do not have access to this category.');
+				elseif (!$this->category->active)
+					self::$smarty->assign('category', $this->category);
+				else
 				{
-					foreach ($sceneImageTypes as $sceneImageType)
+					$rewrited_url = self::$link->getCategoryLink((int)$this->category->id, $this->category->link_rewrite);
+
+					/* Scenes  (could be externalised to another controler if you need them */
+					self::$smarty->assign('scenes', Scene::getScenes((int)($this->category->id), (int)(self::$cookie->id_lang), true, false));
+
+					/* Scenes images formats */
+					if ($sceneImageTypes = ImageType::getImagesTypes('scenes'))
 					{
-						if ($sceneImageType['name'] == 'thumb_scene')
-							$thumbSceneImageType = $sceneImageType;
-						elseif ($sceneImageType['name'] == 'large_scene')
-							$largeSceneImageType = $sceneImageType;
+						foreach ($sceneImageTypes as $sceneImageType)
+						{
+							if ($sceneImageType['name'] == 'thumb_scene')
+								$thumbSceneImageType = $sceneImageType;
+							elseif ($sceneImageType['name'] == 'large_scene')
+								$largeSceneImageType = $sceneImageType;
+						}
+						self::$smarty->assign('thumbSceneImageType', isset($thumbSceneImageType) ? $thumbSceneImageType : NULL);
+						self::$smarty->assign('largeSceneImageType', isset($largeSceneImageType) ? $largeSceneImageType : NULL);
 					}
-					self::$smarty->assign('thumbSceneImageType', isset($thumbSceneImageType) ? $thumbSceneImageType : NULL);
-					self::$smarty->assign('largeSceneImageType', isset($largeSceneImageType) ? $largeSceneImageType : NULL);
-				}
 
-				$this->category->description = nl2br2($this->category->description);
-				$subCategories = $this->category->getSubCategories((int)self::$cookie->id_lang);
-				self::$smarty->assign('category', $this->category);
-				
-				if (isset($subCategories) && !empty($subCategories) && $subCategories)
-				{
-					self::$smarty->assign('subcategories', $subCategories);
+					$this->category->description = nl2br2($this->category->description);
+					$subCategories = $this->category->getSubCategories((int)self::$cookie->id_lang);
+					self::$smarty->assign('category', $this->category);
+
+					if (isset($subCategories) && !empty($subCategories) && $subCategories)
+					{
+						self::$smarty->assign('subcategories', $subCategories);
+						self::$smarty->assign(array(
+							'subcategories_nb_total' => sizeof($subCategories),
+							'subcategories_nb_half' => ceil(sizeof($subCategories) / 2)));
+					}
+					if ($this->category->id != 1)
+						$this->productListAssign();
+
 					self::$smarty->assign(array(
-						'subcategories_nb_total' => sizeof($subCategories),
-						'subcategories_nb_half' => ceil(sizeof($subCategories) / 2)));
-				}
-				if ($this->category->id != 1)
-					$this->productListAssign();
+						'products' => (isset($this->cat_products) AND $this->cat_products) ? $this->cat_products : NULL,
+						'id_category' => (int)($this->category->id),
+						'id_category_parent' => (int)($this->category->id_parent),
+						'return_category_name' => Tools::safeOutput($this->category->name),
+						'path' => Tools::getPath((int)($this->category->id)),
+						'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
+						'categorySize' => Image::getSize('category'),
+						'mediumSize' => Image::getSize('medium'),
+						'thumbSceneSize' => Image::getSize('thumb_scene'),
+						'homeSize' => Image::getSize('home')
+					));
 
-				self::$smarty->assign(array(
-					'products' => (isset($this->cat_products) AND $this->cat_products) ? $this->cat_products : NULL,
-					'id_category' => (int)($this->category->id),
-					'id_category_parent' => (int)($this->category->id_parent),
-					'return_category_name' => Tools::safeOutput($this->category->name),
-					'path' => Tools::getPath((int)($this->category->id)),
-					'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
-					'categorySize' => Image::getSize('category'),
-					'mediumSize' => Image::getSize('medium'),
-					'thumbSceneSize' => Image::getSize('thumb_scene'),
-					'homeSize' => Image::getSize('home')
-				));
-				
-				if (isset(self::$cookie->id_compare))
-					self::$smarty->assign('compareProducts', CompareProduct::getCompareProducts((int)self::$cookie->id_compare));
+					if (isset(self::$cookie->id_compare))
+						self::$smarty->assign('compareProducts', CompareProduct::getCompareProducts((int)self::$cookie->id_compare));
+				}
 			}
+
 		}
 
 		self::$smarty->assign(array(
@@ -175,7 +184,8 @@ class CategoryControllerCore extends FrontController
 	public function displayContent()
 	{
 		parent::displayContent();
-		self::$smarty->display(_PS_THEME_DIR_.'category.tpl');
+		self::$smarty->display(_PS_THEME_DIR_.'category.tpl', $this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 }
 

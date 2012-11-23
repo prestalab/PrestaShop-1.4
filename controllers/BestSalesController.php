@@ -31,16 +31,24 @@ class BestSalesControllerCore extends FrontController
 
 	public function process()
 	{
-		$this->productSort();
-		$nbProducts = (int)(ProductSale::getNbSales());
-		$this->pagination($nbProducts);
-		
-		self::$smarty->assign(array(
-			'products' => ProductSale::getBestSales((int)(self::$cookie->id_lang), (int)($this->p) - 1, (int)($this->n), $this->orderBy, $this->orderWay),
-			'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
-			'nbProducts' => $nbProducts,
-			'homeSize' => Image::getSize('home')
-		));
+		$id_lang = (int)(self::$cookie->id_lang);
+		$id_currency = (int)(self::$cookie->id_currency);
+		$this->smartyCacheId = 'BestSalesController|'.$id_lang.'-'.$id_currency.'-'.Tools::getValue('orderby').'-'.Tools::getValue('orderway').'-'.Tools::getValue('p');
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST');
+		Tools::enableCache();
+		if(!self::$smarty->isCached(_PS_THEME_DIR_.'best-sales.tpl', $this->smartyCacheId))
+		{
+			$this->productSort();
+			$nbProducts = (int)(ProductSale::getNbSales());
+			$this->pagination($nbProducts);
+
+			self::$smarty->assign(array(
+				'products' => ProductSale::getBestSales((int)(self::$cookie->id_lang), (int)($this->p) - 1, (int)($this->n), $this->orderBy, $this->orderWay),
+				'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
+				'nbProducts' => $nbProducts,
+				'homeSize' => Image::getSize('home')
+			));
+		}
 	}
 
 	public function setMedia()
@@ -52,7 +60,8 @@ class BestSalesControllerCore extends FrontController
 	public function displayContent()
 	{
 		parent::displayContent();
-		self::$smarty->display(_PS_THEME_DIR_.'best-sales.tpl');
+		self::$smarty->display(_PS_THEME_DIR_.'best-sales.tpl',$this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 }
 

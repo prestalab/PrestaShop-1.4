@@ -93,32 +93,40 @@ class CmsControllerCore extends FrontController
 	public function process()
 	{
 		parent::process();
-		$parent_cat = new CMSCategory(1, (int)(self::$cookie->id_lang));
-		self::$smarty->assign('id_current_lang', self::$cookie->id_lang);
-		self::$smarty->assign('home_title', $parent_cat->name);
-		self::$smarty->assign('cgv_id', Configuration::get('PS_CONDITIONS_CMS_ID'));
-		if ($this->assignCase == 1)
+		$id_lang = (int)(self::$cookie->id_lang);
+		$this->smartyCacheId = 'CmsController|'.$id_lang.'-'.Tools::getValue('id_cms', 0).'-'.Tools::getValue('id_cms_category', 0);
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 24 Hours
+		Tools::enableCache();
+		if(!self::$smarty->isCached(_PS_THEME_DIR_.'cms.tpl', $this->smartyCacheId))
 		{
-			self::$smarty->assign(array(
-				'cms' => $this->cms,
-				'content_only' => (int)(Tools::getValue('content_only')),
-				'path' => ((isset($this->cms->id_cms_category) AND $this->cms->id_cms_category) ? Tools::getFullPath((int)($this->cms->id_cms_category), $this->cms->meta_title, 'CMS') : Tools::getFullPath(1, $this->cms->meta_title, 'CMS'))
-			));
-		}
-		elseif ($this->assignCase == 2)
-		{
-			self::$smarty->assign(array(
-				'category' => $this->cms_category,
-				'sub_category' => $this->cms_category->getSubCategories((int)(self::$cookie->id_lang)),
-				'cms_pages' => CMS::getCMSPages((int)(self::$cookie->id_lang), (int)($this->cms_category->id) ),
-				'path' => ($this->cms_category->id !== 1) ? Tools::getPath((int)($this->cms_category->id), $this->cms_category->name, false, 'CMS') : '',
-			));
+			$parent_cat = new CMSCategory(1, (int)(self::$cookie->id_lang));
+			self::$smarty->assign('id_current_lang', self::$cookie->id_lang);
+			self::$smarty->assign('home_title', $parent_cat->name);
+			self::$smarty->assign('cgv_id', Configuration::get('PS_CONDITIONS_CMS_ID'));
+			if ($this->assignCase == 1)
+			{
+				self::$smarty->assign(array(
+					'cms' => $this->cms,
+					'content_only' => (int)(Tools::getValue('content_only')),
+					'path' => ((isset($this->cms->id_cms_category) AND $this->cms->id_cms_category) ? Tools::getFullPath((int)($this->cms->id_cms_category), $this->cms->meta_title, 'CMS') : Tools::getFullPath(1, $this->cms->meta_title, 'CMS'))
+				));
+			}
+			elseif ($this->assignCase == 2)
+			{
+				self::$smarty->assign(array(
+					'category' => $this->cms_category,
+					'sub_category' => $this->cms_category->getSubCategories((int)(self::$cookie->id_lang)),
+					'cms_pages' => CMS::getCMSPages((int)(self::$cookie->id_lang), (int)($this->cms_category->id) ),
+					'path' => ($this->cms_category->id !== 1) ? Tools::getPath((int)($this->cms_category->id), $this->cms_category->name, false, 'CMS') : '',
+				));
+			}
 		}
 	}
 
 	public function displayContent()
 	{
 		parent::displayContent();
-		self::$smarty->display(_PS_THEME_DIR_.'cms.tpl');
+		self::$smarty->display(_PS_THEME_DIR_.'cms.tpl', $this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 }

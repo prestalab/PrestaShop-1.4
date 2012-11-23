@@ -38,23 +38,31 @@ class NewProductsControllerCore extends FrontController
 	public function process()
 	{
 		parent::process();
-		
-		$this->productSort();
-		$nbProducts = (int)(Product::getNewProducts((int)(self::$cookie->id_lang), isset($this->p) ? (int)($this->p) - 1 : NULL, isset($this->n) ? (int)($this->n) : NULL, true));
-		$this->pagination($nbProducts);
-		
-		self::$smarty->assign(array(
-			'products' => Product::getNewProducts((int)(self::$cookie->id_lang), (int)($this->p) - 1, (int)($this->n), false, $this->orderBy, $this->orderWay),
-			'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
-			'nbProducts' => (int)($nbProducts),
-			'homeSize' => Image::getSize('home')	
-		));
+		$id_lang = (int)(self::$cookie->id_lang);
+		$id_currency = (int)(self::$cookie->id_currency);
+		$this->smartyCacheId = 'NewProductsController|'.$id_lang.'-'.$id_currency.'-'.Tools::getValue('orderby').'-'.Tools::getValue('orderway').'-'.Tools::getValue('p');
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST'); // 24 Hours
+		Tools::enableCache();
+		if(!self::$smarty->isCached(_PS_THEME_DIR_.'new-products.tpl', $this->smartyCacheId))
+		{
+			$this->productSort();
+			$nbProducts = (int)(Product::getNewProducts((int)(self::$cookie->id_lang), isset($this->p) ? (int)($this->p) - 1 : NULL, isset($this->n) ? (int)($this->n) : NULL, true));
+			$this->pagination($nbProducts);
+
+			self::$smarty->assign(array(
+				'products' => Product::getNewProducts((int)(self::$cookie->id_lang), (int)($this->p) - 1, (int)($this->n), false, $this->orderBy, $this->orderWay),
+				'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
+				'nbProducts' => (int)($nbProducts),
+				'homeSize' => Image::getSize('home')
+			));
+		}
 	}
 	
 	public function displayContent()
 	{
 		parent::displayContent();
-		self::$smarty->display(_PS_THEME_DIR_.'new-products.tpl');
+		self::$smarty->display(_PS_THEME_DIR_.'new-products.tpl', $this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 }
 

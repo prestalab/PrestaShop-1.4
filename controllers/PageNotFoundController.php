@@ -31,7 +31,12 @@ class PageNotFoundControllerCore extends FrontController
 	
 	public function displayContent()
 	{
-		self::$smarty->display(_PS_THEME_DIR_.'404.tpl');
+		$id_lang = (int)(self::$cookie->id_lang);
+		$this->smartyCacheId = 'PageNotFoundController|'.$id_lang;
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 24 Hours
+		Tools::enableCache();
+		self::$smarty->display(_PS_THEME_DIR_.'404.tpl',$this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 }
 

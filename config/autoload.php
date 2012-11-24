@@ -29,7 +29,8 @@ function __autoload($className)
 {
 	if (defined('SMARTY_SPL_AUTOLOAD') && smartyAutoload($className))
 		return true;
-
+	if(strpos($className, 'Swift_')===0)
+		return Swift::autoload($className);
 	$className = str_replace(chr(0), '', $className);
 	$classDir = dirname(__FILE__).'/../classes/';
 	$overrideDir = dirname(__FILE__).'/../override/classes/';

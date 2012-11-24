@@ -170,7 +170,7 @@ INSERT INTO `PREFIX_configuration` (`id_configuration`, `name`, `value`, `date_a
 (80, 'PS_ORDER_PROCESS_TYPE', 0, NOW(), NOW()),
 (81, 'PS_SPECIFIC_PRICE_PRIORITIES', 'id_shop;id_currency;id_country;id_group', NOW(), NOW()),
 (82, 'PS_TAX_DISPLAY', 0, NOW(), NOW()),
-(83, 'PS_SMARTY_FORCE_COMPILE', 0, NOW(), NOW()),
+(83, 'PS_SMARTY_FORCE_COMPILE', 1, NOW(), NOW()),
 (84, 'PS_DISTANCE_UNIT', 'km', NOW(), NOW()),
 (85, 'PS_STORES_DISPLAY_CMS', 1, NOW(), NOW()),
 (86, 'PS_STORES_DISPLAY_FOOTER', 1, NOW(), NOW()),
@@ -188,7 +188,7 @@ INSERT INTO `PREFIX_configuration` (`id_configuration`, `name`, `value`, `date_a
 (98, 'PS_LOCALE_LANGUAGE', '', NOW(), NOW()),
 (99, 'PS_LOCALE_COUNTRY', '', NOW(), NOW()),
 (100, 'PS_ATTACHMENT_MAXIMUM_SIZE', '2', NOW(), NOW()),
-(101, 'PS_SMARTY_CACHE', '1', NOW(), NOW()),
+(101, 'PS_SMARTY_CACHE', '0', NOW(), NOW()),
 (102, 'PS_DIMENSION_UNIT', 'cm', NOW(), NOW()),
 (103, 'PS_FORCE_SMARTY_2', '0', NOW(), NOW()),
 (104, 'PS_GUEST_CHECKOUT_ENABLED', '0', NOW(), NOW()),
@@ -76414,6 +76414,13 @@ INSERT INTO `PREFIX_lang` (`id_lang`, `name`, `active`, `iso_code`, `language_co
 
 INSERT IGNORE INTO `PREFIX_cms_category_lang` (`id_cms_category`, `id_lang`, `name`, `description`, `link_rewrite`, `meta_title`, `meta_keywords`, `meta_description`) VALUES
 (1, 6, 'Главная', '', 'home', NULL, NULL, NULL);
+
+INSERT INTO `PREFIX_configuration_lang` (`id_configuration`, `id_lang`, `value`, `date_upd`) VALUES
+(36, 6, 'IN', NOW()),
+(38, 6, 'DE', NOW()),
+(46, 6, 'а|без|более|бы|был|была|были|было|быть|в|вам|вас|весь|во|вот|все|всего|всех|вы|где|да|даже|для|до|его|ее|если|есть|еще|же|за|здесь|и|из|или|им|их|к|как|ко|когда|кто|ли|либо|мне|может|мы|на|надо|наш|не|него|нее|нет|ни|них|но|ну|о|об|однако|он|она|они|оно|от|очень|по|под|при|с|со|так|также|такой|там|те|тем|то|того|тоже|той|только|том|ты|у|уже|хотя|чего|чей|чем|что|чтобы|чье|чья|эта|эти|это|я', NOW()),
+(68, 6, 0, NOW()),
+(74, 6, 'Дорогой Покупатель,\r\n\r\nС наилучшими пожеланиями,\r\nСлужба поддержки', NOW());
 
 /* Cache system */
 INSERT INTO `PREFIX_tab` (`id_tab`, `id_parent`, `class_name`, `module`, `position`) VALUES

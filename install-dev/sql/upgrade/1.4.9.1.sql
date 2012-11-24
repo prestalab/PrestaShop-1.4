@@ -23,6 +23,7 @@ INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) VALUES
 (89, 4, 'Cache'),
 (89, 5, 'Cache'),
 (89, 6, 'Кэш');
+INSERT INTO `PREFIX_access` (`id_profile`, `id_tab`, `view`, `add`, `edit`, `delete`) VALUES ('1', '89', '1', '1', '1', '1');
 INSERT INTO `PREFIX_configuration` (`name`, `value`) VALUES
 ('PL_CACHE_LIST', '86400'),
 ('PL_CACHE_LONG', '31536000'),

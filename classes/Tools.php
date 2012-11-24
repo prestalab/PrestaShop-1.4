@@ -412,6 +412,18 @@ class ToolsCore
 		else
 			return false;
 
+		if ($no_utf8)
+		{
+			$replace = false;
+			$signs=array('€', '£', '¥');
+			foreach($signs as $sign)
+				if(strpos($c_char, $sign) !== false)
+					$replace = true;
+			if($replace)
+				$c_char = str_replace($signs, array(chr(128), chr(163), chr(165)), $c_char);
+			else
+				$c_char = Tools::iconv('utf-8', 'cp1251', $c_char);
+		}
 		$blank = ($c_blank ? ' ' : '');
 		$ret = 0;
 		if (($isNegative = ($price < 0)))
@@ -438,8 +450,6 @@ class ToolsCore
 		}
 		if ($isNegative)
 			$ret = '-'.$ret;
-		if ($no_utf8)
-			return str_replace(array('€', '£', '¥'), array(chr(128), chr(163), chr(165)), $ret);
 		return $ret;
 	}
 

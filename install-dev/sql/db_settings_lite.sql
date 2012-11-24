@@ -76433,3 +76433,10 @@ INSERT INTO `PREFIX_configuration` (`name`, `value`) VALUES
 ('PL_CACHE_LIST', '86400'),
 ('PL_CACHE_LONG', '31536000'),
 ('PL_CACHE_SHORT', '86400');
+
+/* Fix RU PDF */
+INSERT IGNORE INTO `PREFIX_configuration` (`name`, `value`) VALUES
+('PS_PDF_ENCODING_RU', 'cp1251');
+INSERT IGNORE INTO `PREFIX_configuration` (`name`, `value`) VALUES
+('PS_PDF_FONT_RU', 'courier');
+

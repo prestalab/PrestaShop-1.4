@@ -711,6 +711,7 @@ CREATE TABLE `PREFIX_hook_module` (
   `id_module` int(10) unsigned NOT NULL,
   `id_hook` int(10) unsigned NOT NULL,
   `position` tinyint(2) unsigned NOT NULL,
+  `time` INT( 10 ) NOT NULL DEFAULT  '0',
   PRIMARY KEY  (`id_module`,`id_hook`),
   KEY `id_hook` (`id_hook`),
   KEY `id_module` (`id_module`)

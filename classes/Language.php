@@ -608,11 +608,15 @@ class LanguageCore extends ObjectModel
 	  */
 	public static function loadLanguages()
 	{
-		self::$_LANGUAGES = array();
-		$db = Db::getInstance();
-		$result = $db->ExecuteS('SELECT * FROM `'._DB_PREFIX_.'lang`', false);
-		while ($row = $db->nextRow($result))
-			self::$_LANGUAGES[(int)$row['id_lang']] = $row;
+		self::$_LANGUAGES = Cache::getInstance()->get(md5('_LANGUAGES'));
+		if(!self::$_LANGUAGES)
+		{
+			$db = Db::getInstance();
+			$result = $db->ExecuteS('SELECT * FROM `'._DB_PREFIX_.'lang`', false);
+			while ($row = $db->nextRow($result))
+				self::$_LANGUAGES[(int)$row['id_lang']] = $row;
+			Cache::getInstance()->set(md5('_LANGUAGES'), self::$_LANGUAGES);
+		}
 	}
 
 	public function update($nullValues = false)

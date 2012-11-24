@@ -81,7 +81,7 @@ function developpementErrorHandler($errno, $errstr, $errfile, $errline)
 	return true;
 }
 
-abstract class FrontController extends FrontControllerCore
+class FrontController extends FrontControllerCore
 {
 	public $_memory = array();
 	public $_time = array();

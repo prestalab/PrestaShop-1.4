@@ -57,7 +57,15 @@ class BlockPermanentLinks extends Module
 	*/
 	function hookTop($params)
 	{
-		return $this->display(__FILE__, 'blockpermanentlinks-header.tpl');
+		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockpermanentlinks-header|'.$id_lang;
+
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		$display = $this->display(__FILE__, 'blockpermanentlinks-header.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	/**

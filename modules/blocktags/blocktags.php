@@ -96,15 +96,22 @@ class BlockTags extends Module
 	function hookLeftColumn($params)
 	{
 		global $smarty;
-
-		$tags = Tag::getMainTags((int)$params['cookie']->id_lang, (int)Configuration::get('BLOCKTAGS_NBR'));
-		if (!count($tags))
-			return false;
-		foreach ($tags as &$tag)
-			$tag['class'] = 'tag_level'.($tag['times'] > BLOCKTAGS_MAX_LEVEL ? BLOCKTAGS_MAX_LEVEL : $tag['times']);
-		$smarty->assign('tags', $tags);
-		
-		return $this->display(__FILE__, 'blocktags.tpl');
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blocktags|'.$id_lang;
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blocktags.tpl', $smartyCacheId))
+		{
+			$tags = Tag::getMainTags((int)$params['cookie']->id_lang, (int)Configuration::get('BLOCKTAGS_NBR'));
+			if (!count($tags))
+				return false;
+			foreach ($tags as &$tag)
+				$tag['class'] = 'tag_level'.($tag['times'] > BLOCKTAGS_MAX_LEVEL ? BLOCKTAGS_MAX_LEVEL : $tag['times']);
+			$smarty->assign('tags', $tags);
+		}
+		$display = $this->display(__FILE__, 'blocktags.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	function hookRightColumn($params)

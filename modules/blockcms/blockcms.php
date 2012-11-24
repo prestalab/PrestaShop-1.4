@@ -549,6 +549,7 @@ class BlockCms extends Module
 	
 	private function changePosition()
 	{
+		global $currentIndex;
 		if (!Validate::isInt(Tools::getValue('position')) OR 
 			(Tools::getValue('location') != self::LEFT_COLUMN AND Tools::getValue('location') != self::RIGHT_COLUMN) OR 
 			(Tools::getValue('way') != 0 AND Tools::getValue('way') != 1))
@@ -721,48 +722,76 @@ class BlockCms extends Module
 		return $this->_html;
 	}
 	
-	public function hookLeftColumn()
+	public function hookLeftColumn($params)
 	{
 		global $smarty;
-	
-		$cms_titles = self::getCMStitles(self::LEFT_COLUMN);
-		$smarty->assign(array(
-			'block' => 1,
-			'cms_titles' => $cms_titles,
-			'theme_dir' => _PS_THEME_DIR_
-		));
-		return $this->display(__FILE__, 'blockcms.tpl');
-	}
-	
-	public function hookRightColumn()
-	{
-		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockcms-left|'.$id_lang;
 
-		$cms_titles = self::getCMStitles(self::RIGHT_COLUMN);
-		$smarty->assign(array(
-			'block' => 1,
-			'cms_titles' => $cms_titles,
-			'theme_dir' => _PS_THEME_DIR_
-		));
-		return $this->display(__FILE__, 'blockcms.tpl');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blockcms.tpl', $smartyCacheId))
+		{
+			$cms_titles = self::getCMStitles(self::LEFT_COLUMN);
+			$smarty->assign(array(
+				'block' => 1,
+				'cms_titles' => $cms_titles,
+				'theme_dir' => _PS_THEME_DIR_
+			));
+		}
+		$display = $this->display(__FILE__, 'blockcms.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 	
-	public function hookFooter()
+	public function hookRightColumn($params)
+	{
+		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockcms-right|'.$id_lang;
+
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blockcms.tpl', $smartyCacheId))
+		{
+			$cms_titles = self::getCMStitles(self::RIGHT_COLUMN);
+			$smarty->assign(array(
+				'block' => 1,
+				'cms_titles' => $cms_titles,
+				'theme_dir' => _PS_THEME_DIR_
+			));
+		}
+		$display = $this->display(__FILE__, 'blockcms.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
+	}
+	
+	public function hookFooter($params)
 	{
 		global $smarty;
 		
 		if (Configuration::get('FOOTER_BLOCK_ACTIVATION'))
 		{
-			$cms_titles = self::getCMStitlesFooter();
-			$smarty->assign(array(
-				'block' => 0,
-				'contact_url' => 'contact',
-				'cmslinks' => $cms_titles,
-				'theme_dir' => _PS_THEME_DIR_,
-				'display_stores_footer' => Configuration::get('PS_STORES_DISPLAY_FOOTER'),
-				'display_poweredby' => ((int)Configuration::get('FOOTER_POWEREDBY') === 1 || Configuration::get('FOOTER_POWEREDBY') === false)
-			));
-			return $this->display(__FILE__, 'blockcms.tpl');
+			$id_lang = (int)($params['cookie']->id_lang);
+			$smartyCacheId = 'blockcms-footer|'.$id_lang;
+
+			$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+			Tools::enableCache();
+			if (!$this->isCached('blockcms.tpl', $smartyCacheId))
+			{
+				$cms_titles = self::getCMStitlesFooter();
+				$smarty->assign(array(
+					'block' => 0,
+					'contact_url' => 'contact',
+					'cmslinks' => $cms_titles,
+					'theme_dir' => _PS_THEME_DIR_,
+					'display_stores_footer' => Configuration::get('PS_STORES_DISPLAY_FOOTER'),
+					'display_poweredby' => ((int)Configuration::get('FOOTER_POWEREDBY') === 1 || Configuration::get('FOOTER_POWEREDBY') === false)
+				));
+			}
+			$display = $this->display(__FILE__, 'blockcms.tpl', $smartyCacheId);
+			Tools::restoreCacheSettings();
+			return $display;
 		}
 		return '';
 	}

@@ -93,26 +93,39 @@ class BlockBestSellers extends Module
 		if (Configuration::get('PS_CATALOG_MODE'))
 			return;
 
-		global $smarty;
-
-		$currency = new Currency((int)($params['cookie']->id_currency));
-		$bestsellers = ProductSale::getBestSalesLight((int)($params['cookie']->id_lang), 0, 5);
-		if (!$bestsellers && !Configuration::get('PS_BLOCK_BESTSELLERS_DISPLAY'))
+		if (!Configuration::get('PS_BLOCK_BESTSELLERS_DISPLAY'))
 			return;
-		$best_sellers = array();
 
-		if ($bestsellers)
-			foreach ($bestsellers as $bestseller)
-			{
-				$bestseller['price'] = Tools::displayPrice(Product::getPriceStatic((int)($bestseller['id_product']), Product::getTaxCalculationMethod() == PS_TAX_INC), $currency);
-				$best_sellers[] = $bestseller;
-			}
+		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$id_currency = (int)($params['cookie']->id_currency);
+		$smartyCacheId = 'blockbestsellers|'.$id_lang.'-'.$id_currency;
 
-		$smarty->assign(array(
-			'best_sellers' => $best_sellers,
-			'mediumSize' => Image::getSize('medium')));
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_SHORT'); // 24 Hours
+		Tools::enableCache();
+		if (!$this->isCached('blockbestsellers.tpl', $smartyCacheId))
+		{
+			$currency = new Currency((int)($params['cookie']->id_currency));
+			$bestsellers = ProductSale::getBestSalesLight((int)($params['cookie']->id_lang), 0, 5);
+			if (!$bestsellers)
+				return;
+			$best_sellers = array();
 
-		return $this->display(__FILE__, 'blockbestsellers.tpl');
+			if ($bestsellers)
+				foreach ($bestsellers as $bestseller)
+				{
+					$bestseller['price'] = Tools::displayPrice(Product::getPriceStatic((int)($bestseller['id_product']), Product::getTaxCalculationMethod() == PS_TAX_INC), $currency);
+					$best_sellers[] = $bestseller;
+				}
+
+			$smarty->assign(array(
+				'best_sellers' => $best_sellers,
+				'mediumSize' => Image::getSize('medium')));
+		}
+
+		$display = $this->display(__FILE__, 'blockbestsellers.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	public function hookLeftColumn($params)
@@ -132,25 +145,37 @@ class BlockBestSellers extends Module
 		if (Configuration::get('PS_CATALOG_MODE'))
 			return;
 
-		global $smarty;
-
-		$currency = new Currency((int)$params['cookie']->id_currency);
-		$bestsellers = ProductSale::getBestSalesLight((int)$params['cookie']->id_lang, 0, 4);
-		if (!$bestsellers && !Configuration::get('PS_BLOCK_BESTSELLERS_DISPLAY'))
+		if (!Configuration::get('PS_BLOCK_BESTSELLERS_DISPLAY'))
 			return;
-		$best_sellers = array();
 
-		if ($bestsellers)
-			foreach ($bestsellers as $bestseller)
-			{
-				$bestseller['price'] = Tools::displayPrice(Product::getPriceStatic((int)($bestseller['id_product'])), $currency);
-				$best_sellers[] = $bestseller;
-			}
+		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$id_currency = (int)($params['cookie']->id_currency);
+		$smartyCacheId = 'blockbestsellers-home|'.$id_lang.'-'.$id_currency;
 
-		$smarty->assign(array(
-			'best_sellers' => $best_sellers,
-			'homeSize' => Image::getSize('home')));
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_SHORT'); // 24 Hours
+		Tools::enableCache();
+		if (!$this->isCached('blockbestsellers-home.tpl', $smartyCacheId))
+		{
+			$currency = new Currency((int)$params['cookie']->id_currency);
+			$bestsellers = ProductSale::getBestSalesLight((int)$params['cookie']->id_lang, 0, 4);
+			if (!$bestsellers)
+				return;
+			$best_sellers = array();
 
-		return $this->display(__FILE__, 'blockbestsellers-home.tpl');
+			if ($bestsellers)
+				foreach ($bestsellers as $bestseller)
+				{
+					$bestseller['price'] = Tools::displayPrice(Product::getPriceStatic((int)($bestseller['id_product'])), $currency);
+					$best_sellers[] = $bestseller;
+				}
+
+			$smarty->assign(array(
+				'best_sellers' => $best_sellers,
+				'homeSize' => Image::getSize('home')));
+		}
+		$display = $this->display(__FILE__, 'blockbestsellers-home.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 }

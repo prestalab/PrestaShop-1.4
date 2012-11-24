@@ -182,9 +182,20 @@ class BlockCart extends Module
 			return;
 
 		global $smarty;
-		$smarty->assign('order_page', strpos($_SERVER['PHP_SELF'], 'order') !== false);
-		$this->smartyAssigns($smarty, $params);
-		return $this->display(__FILE__, 'blockcart.tpl');
+		$id_lang = (int)($params['cookie']->id_lang);
+		$id_currency = (int)($params['cookie']->id_currency);
+		$smartyCacheId = 'blockcart|'.$id_lang.'-'.$id_currency;
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		if(!$params['cart']->id)
+			Tools::enableCache();
+		if (!$this->isCached('blockcart.tpl', $smartyCacheId))
+		{
+			$smarty->assign('order_page', strpos($_SERVER['PHP_SELF'], 'order') !== false);
+			$this->smartyAssigns($smarty, $params);
+		}
+		$display = $this->display(__FILE__, 'blockcart.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	public function hookLeftColumn($params)

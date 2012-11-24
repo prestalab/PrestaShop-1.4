@@ -88,15 +88,25 @@ class BlockSpecials extends Module
 			return ;
 
 		global $smarty;
-		if (!$special = Product::getRandomSpecial((int)($params['cookie']->id_lang)) AND !Configuration::get('PS_BLOCK_SPECIALS_DISPLAY'))
-			return;
-		$smarty->assign(array(
-			'special' => $special,
-			'priceWithoutReduction_tax_excl' => Tools::ps_round($special['price_without_reduction'], 2),
-			'mediumSize' => Image::getSize('medium')
-		));
+		$id_lang = (int)($params['cookie']->id_lang);
+		$id_currency = (int)($params['cookie']->id_currency);
+		$smartyCacheId = 'blockspecials|'.$id_lang.'-'.$id_currency;
 
-		return $this->display(__FILE__, 'blockspecials.tpl');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_SHORT'); // 24 Hours
+		Tools::enableCache();
+		if (!$this->isCached('blockspecials.tpl', $smartyCacheId))
+		{
+			if (!$special = Product::getRandomSpecial((int)($params['cookie']->id_lang)) AND !Configuration::get('PS_BLOCK_SPECIALS_DISPLAY'))
+				return;
+			$smarty->assign(array(
+				'special' => $special,
+				'priceWithoutReduction_tax_excl' => Tools::ps_round($special['price_without_reduction'], 2),
+				'mediumSize' => Image::getSize('medium')
+			));
+		}
+		$display = $this->display(__FILE__, 'blockspecials.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	public function hookLeftColumn($params)

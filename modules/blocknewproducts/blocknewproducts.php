@@ -97,13 +97,21 @@ class BlockNewProducts extends Module
 	public function hookRightColumn($params)
 	{
 		global $smarty;
-	
-		$newProducts = Product::getNewProducts((int)($params['cookie']->id_lang), 0, (int)(Configuration::get('NEW_PRODUCTS_NBR')));
-		if (!$newProducts AND !Configuration::get('PS_BLOCK_NEWPRODUCTS_DISPLAY'))
-			return;
-		$smarty->assign(array('new_products' => $newProducts, 'mediumSize' => Image::getSize('medium')));
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blocknewproducts|'.$id_lang;
 
-		return $this->display(__FILE__, 'blocknewproducts.tpl');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_SHORT'); // 24 Hours
+		Tools::enableCache();
+		if (!$this->isCached('blocknewproducts.tpl', $smartyCacheId))
+		{
+			$newProducts = Product::getNewProducts((int)($params['cookie']->id_lang), 0, (int)(Configuration::get('NEW_PRODUCTS_NBR')));
+			if (!$newProducts AND !Configuration::get('PS_BLOCK_NEWPRODUCTS_DISPLAY'))
+				return;
+			$smarty->assign(array('new_products' => $newProducts, 'mediumSize' => Image::getSize('medium')));
+		}
+		$display = $this->display(__FILE__, 'blocknewproducts.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 	
 	public function hookLeftColumn($params)

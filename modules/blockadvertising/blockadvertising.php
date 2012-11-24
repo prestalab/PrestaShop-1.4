@@ -70,8 +70,8 @@ class BlockAdvertising extends Module
 			$this->adv_imgname = 'advertising';
 			if (!file_exists(_PS_MODULE_DIR_.$this->name.'/advertising.jpg'))
 				$this->adv_imgname = '';
-			else
-				Configuration::updateValue('BLOCKADVERT_IMG_EXT','jpg');
+			//else
+			//	Configuration::updateValue('BLOCKADVERT_IMG_EXT','jpg');
 		}
 
 		if (!empty($this->adv_imgname))
@@ -211,12 +211,20 @@ class BlockAdvertising extends Module
 	public function hookRightColumn($params)
 	{
 		global $smarty, $protocol_content;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockadvertising|'.$id_lang;
 
-		$smarty->assign('image', $protocol_content.$this->adv_img);
-		$smarty->assign('adv_link', $this->adv_link);
-		$smarty->assign('adv_title', $this->adv_title);
-
-		return $this->display(__FILE__, 'blockadvertising.tpl');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blockadvertising.tpl', $smartyCacheId))
+		{
+			$smarty->assign('image', $protocol_content.$this->adv_img);
+			$smarty->assign('adv_link', $this->adv_link);
+			$smarty->assign('adv_title', $this->adv_title);
+		}
+		$display = $this->display(__FILE__, 'blockadvertising.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	public function hookLeftColumn($params)

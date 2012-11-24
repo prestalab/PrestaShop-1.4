@@ -55,16 +55,26 @@ class BlockManufacturer extends Module
     function hookLeftColumn($params)
     {
 		global $smarty, $link;
-		
-		$smarty->assign(array(
-			'manufacturers' => Manufacturer::getManufacturers(),
-			'link' => $link,
-			'text_list' => Configuration::get('MANUFACTURER_DISPLAY_TEXT'),
-			'text_list_nb' => Configuration::get('MANUFACTURER_DISPLAY_TEXT_NB'),
-			'form_list' => Configuration::get('MANUFACTURER_DISPLAY_FORM'),
-			'display_link_manufacturer' => Configuration::get('PS_DISPLAY_SUPPLIERS'),
-		));
-		return $this->display(__FILE__, 'blockmanufacturer.tpl');
+	    $id_lang = (int)($params['cookie']->id_lang);
+	    $smartyCacheId = 'blockmanufacturer|'.$id_lang;
+
+	    $smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+	    Tools::enableCache();
+	    if (!$this->isCached('blockmanufacturer.tpl', $smartyCacheId))
+	    {
+			$smarty->assign(array(
+				'manufacturers' => Manufacturer::getManufacturers(),
+				'link' => $link,
+				'text_list' => Configuration::get('MANUFACTURER_DISPLAY_TEXT'),
+				'text_list_nb' => Configuration::get('MANUFACTURER_DISPLAY_TEXT_NB'),
+				'form_list' => Configuration::get('MANUFACTURER_DISPLAY_FORM'),
+				'display_link_manufacturer' => Configuration::get('PS_DISPLAY_SUPPLIERS'),
+			));
+	    }
+
+	    $display = $this->display(__FILE__, 'blockmanufacturer.tpl', $smartyCacheId);
+	    Tools::restoreCacheSettings();
+	    return $display;
 	}
 	
 	function hookRightColumn($params)

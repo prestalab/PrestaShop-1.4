@@ -64,9 +64,18 @@ class BlockStore extends Module
 	function hookRightColumn($params)
 	{
 		global $smarty;
-		
-		$smarty->assign('store_img', Configuration::get('BLOCKSTORE_IMG'));
-		return $this->display(__FILE__, 'blockstore.tpl');
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockstore|'.$id_lang;
+
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blockstore.tpl', $smartyCacheId))
+		{
+			$smarty->assign('store_img', Configuration::get('BLOCKSTORE_IMG'));
+		}
+		$display = $this->display(__FILE__, 'blockstore.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 	
 	function hookHeader($params)

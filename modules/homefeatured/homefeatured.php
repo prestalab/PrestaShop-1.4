@@ -95,15 +95,24 @@ class HomeFeatured extends Module
 	function hookHome($params)
 	{
 		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$id_currency = (int)($params['cookie']->id_currency);
+		$smartyCacheId = 'homefeatured|'.$id_lang.'-'.$id_currency;
 
-		$category = new Category(1, (int)Configuration::get('PS_LANG_DEFAULT'));
-		$nb = (int)Configuration::get('HOME_FEATURED_NBR');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('homefeatured.tpl', $smartyCacheId))
+		{
+			$category = new Category(1, (int)Configuration::get('PS_LANG_DEFAULT'));
+			$nb = (int)Configuration::get('HOME_FEATURED_NBR');
 
-		$smarty->assign(array(
-		'products' => $category->getProducts((int)$params['cookie']->id_lang, 1, ($nb ? $nb : 10)),
-		'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
-		'homeSize' => Image::getSize('home')));
-
-		return $this->display(__FILE__, 'homefeatured.tpl');
+			$smarty->assign(array(
+			'products' => $category->getProducts((int)$params['cookie']->id_lang, 1, ($nb ? $nb : 10)),
+			'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
+			'homeSize' => Image::getSize('home')));
+		}
+		$display = $this->display(__FILE__, 'homefeatured.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 }

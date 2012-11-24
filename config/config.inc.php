@@ -28,6 +28,8 @@
 /* Debug only */
 @ini_set('display_errors', 'on');
 define('_PS_DEBUG_SQL_', false);
+define('_PS_DEBUG_PROFILING_', true);
+
 
 $start_time = microtime(true);
 
@@ -61,6 +63,14 @@ require_once(dirname(__FILE__).'/defines.inc.php');
 
 /* Autoload */
 require_once(dirname(__FILE__).'/autoload.php');
+
+if (_PS_DEBUG_PROFILING_&&!(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'))
+{
+	include_once(_PS_TOOL_DIR_.'profiling/FrontController.php');
+	include_once(_PS_TOOL_DIR_.'profiling/ObjectModel.php');
+	include_once(_PS_TOOL_DIR_.'profiling/Module.php');
+	include_once(_PS_TOOL_DIR_.'profiling/MySQL.php');
+}
 
 /* Redefine REQUEST_URI if empty (on some webservers...) */
 if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI']))

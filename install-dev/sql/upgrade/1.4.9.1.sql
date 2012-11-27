@@ -14,16 +14,15 @@ INSERT INTO `PREFIX_hook_module` (`id_module`, `id_hook` , `position`)
 
 /* Cache system */
 ALTER TABLE  `PREFIX_hook_module` ADD  `time` INT( 10 ) NOT NULL DEFAULT  '0';
-INSERT INTO `PREFIX_tab` (`id_tab`, `id_parent`, `class_name`, `module`, `position`) VALUES
-(89, 8, 'AdminCache', '', 13);
-INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) VALUES
-(89, 1, 'Cache'),
-(89, 2, 'Cache'),
-(89, 3, 'Cache'),
-(89, 4, 'Cache'),
-(89, 5, 'Cache'),
-(89, 6, 'Кэш');
-INSERT INTO `PREFIX_access` (`id_profile`, `id_tab`, `view`, `add`, `edit`, `delete`) VALUES ('1', '89', '1', '1', '1', '1');
+INSERT INTO `PREFIX_tab` (`id_parent`, `class_name`, `module`, `position`) VALUES
+(8, 'AdminCache', '', 13);
+INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) SELECT `id_tab`, 1, 'Cache' FROM `PREFIX_tab` WHERE `class_name`='AdminCache';
+INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) SELECT `id_tab`, 2, 'Cache' FROM `PREFIX_tab` WHERE `class_name`='AdminCache';
+INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) SELECT `id_tab`, 3, 'Cache' FROM `PREFIX_tab` WHERE `class_name`='AdminCache';
+INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) SELECT `id_tab`, 4, 'Cache' FROM `PREFIX_tab` WHERE `class_name`='AdminCache';
+INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) SELECT `id_tab`, 5, 'Cache' FROM `PREFIX_tab` WHERE `class_name`='AdminCache';
+INSERT INTO `PREFIX_tab_lang` (`id_tab`, `id_lang`, `name`) SELECT `id_tab`, 6, 'Кэш' FROM `PREFIX_tab` WHERE `class_name`='AdminCache';
+INSERT INTO `PREFIX_access` (`id_profile`, `id_tab`, `view`, `add`, `edit`, `delete`) SELECT '1', `id_tab`, '1', '1', '1', '1' FROM `PREFIX_tab` WHERE `class_name`='AdminCache';
 INSERT INTO `PREFIX_configuration` (`name`, `value`) VALUES
 ('PL_CACHE_LIST', '86400'),
 ('PL_CACHE_LONG', '31536000'),

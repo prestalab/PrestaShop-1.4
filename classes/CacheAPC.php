@@ -91,12 +91,12 @@ class CacheAPCCore extends Cache
 
 	private function _writeKeys()
 	{
-		$this->set('keysCached', $this->_keysCached, 0, 0);
+		apc_store('keysCached', $this->_keysCached, 0);
 	}
 
 	private function _writeTables()
 	{
-		$this->set('tablesCached', $this->_tablesCached, 0, 0);
+		apc_store('tablesCached', $this->_tablesCached, 0);
 	}
 
 	public function flush()
@@ -104,12 +104,5 @@ class CacheAPCCore extends Cache
 		if (apc_clear_cache('user'))
 			return $this->_setKeys();
 		return false;
-	}
-
-	public function __destruct()
-	{
-		parent::__destruct();
-		apc_store('keysCached', $this->_keysCached);
-		apc_store('tablesCached', $this->_tablesCached);
 	}
 }

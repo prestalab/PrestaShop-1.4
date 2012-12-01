@@ -229,7 +229,7 @@ class PaypalExpressCheckout extends Paypal
 		$total = 0;
 		$index = -1;
 
-		$id_address = (int)$this->context->cart->id_address_invoice;
+		$id_address = (int)$this->context->cart->id_address_delivery;
 
 		if ($id_address && method_exists($this->context->cart, 'isVirtualCart') && !$this->context->cart->isVirtualCart())
 		{
@@ -329,7 +329,11 @@ class PaypalExpressCheckout extends Paypal
 		else
 			$shipping_cost_wt = $this->context->cart->getTotalShippingCost();
 
-		$fields['PAYMENTREQUEST_0_PAYMENTACTION'] = 'Sale';
+		if ((bool)Configuration::get('PAYPAL_CAPTURE'))
+			$fields['PAYMENTREQUEST_0_PAYMENTACTION'] = 'Authorization';
+		else
+			$fields['PAYMENTREQUEST_0_PAYMENTACTION'] = 'Sale';
+		
 		$fields['PAYMENTREQUEST_0_CURRENCYCODE'] = $this->currency->iso_code;
 
 		$fields['PAYMENTREQUEST_0_SHIPPINGAMT'] = Tools::ps_round($shipping_cost_wt, $this->decimals);
@@ -477,7 +481,7 @@ class PaypalExpressCheckout extends Paypal
 
 		if ($redirect)
 		{
-			$link = $this->context->link->getPageLink('order?step=3', _PS_SSL_ENABLED_);
+			$link = $this->context->link->getPageLink('order.php', false, null, array('step' => '3'));
 			Tools::redirectLink($link);
 			exit(0);
 		}

@@ -133,7 +133,7 @@ abstract class ObjectModelCore
 			{
 				$this->id = (int)$id;
 				foreach ($result as $key => $value)
-					if (key_exists($key, $this))
+					if (array_key_exists($key, $this))
 						$this->{$key} = $value;
 
 				/* Join multilingual tables */
@@ -147,7 +147,7 @@ abstract class ObjectModelCore
 					if ($result)
 						foreach ($result as $row)
 							foreach ($row as $key => $value)
-								if (key_exists($key, $this) && $key != $this->identifier)
+								if (array_key_exists($key, $this) && $key != $this->identifier)
 								{
 									if (!is_array($this->{$key}))
 										$this->{$key} = array();

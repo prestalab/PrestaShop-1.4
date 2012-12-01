@@ -95,7 +95,7 @@ class ConfigurationCore extends ObjectModel
 	 	if (!Validate::isConfigName($key))
 			return false;
 
-		self::dropCache();
+		Configuration::dropCache();
 		/* Delete the key from the main configuration table */
 		if (Db::getInstance()->Execute('DELETE FROM `'._DB_PREFIX_.'configuration` WHERE `id_configuration` = '.(int)self::$_CONF_IDS[$key].' LIMIT 1'))
 			unset(self::$_CONF[$key]);
@@ -143,7 +143,7 @@ class ConfigurationCore extends ObjectModel
 			foreach ($values as $k => $value)
 				self::$_CONF_LANG[(int)$k][$key] = $value;
 
-		self::dropCache();
+		Configuration::dropCache();
 	}
 
 	/**
@@ -228,7 +228,7 @@ class ConfigurationCore extends ObjectModel
 		if (!is_null($value))
 			$newConfig->value = $value;
 
-		self::dropCache();
+		Configuration::dropCache();
 		return $newConfig->add() ? (int)$newConfig->id : false;
 	}
 
@@ -252,7 +252,7 @@ class ConfigurationCore extends ObjectModel
 		$db = Db::getInstance();
 		$current_value = Configuration::get($key);
 
-		self::dropCache();
+		Configuration::dropCache();
 
 		/* Update classic values */
 		if (!is_array($values))
@@ -324,9 +324,9 @@ class ConfigurationCore extends ObjectModel
 	public static function loadConfiguration()
 	{
 		$cache_instance=Cache::getInstance();
-		self::$_CONF=$cache_instance->get(md5('configuration_conf'));
-		self::$_CONF_LANG=$cache_instance->get(md5('configuration_conf_lang'));
-		self::$_CONF_IDS=$cache_instance->get(md5('configuration_conf_ids'));
+		self::$_CONF=$cache_instance->get('configuration_conf');
+		self::$_CONF_LANG=$cache_instance->get('configuration_conf_lang');
+		self::$_CONF_IDS=$cache_instance->get('configuration_conf_ids');
 
 		if(self::$_CONF&&self::$_CONF_LANG&&self::$_CONF_IDS)
 			return;
@@ -346,18 +346,16 @@ class ConfigurationCore extends ObjectModel
 				if ($row['id_lang'])
 					self::$_CONF_LANG[(int)$row['id_lang']][$row['name']] = $row['cl_value'];
 			}
-			$cache_instance->set(md5('configuration_conf'),self::$_CONF);
-			$cache_instance->set(md5('configuration_conf_lang'),self::$_CONF_LANG);
-			$cache_instance->set(md5('configuration_conf_ids'),self::$_CONF_IDS);
+			$cache_instance->set('configuration_conf',self::$_CONF);
+			$cache_instance->set('configuration_conf_lang',self::$_CONF_LANG);
+			$cache_instance->set('configuration_conf_ids',self::$_CONF_IDS);
 		}
 	}
 
 	public static function dropCache()
 	{
 		$cache_instance=Cache::getInstance();
-		$cache_instance->delete(md5('configuration_conf'));
-		$cache_instance->delete(md5('configuration_conf_lang'));
-		$cache_instance->delete(md5('configuration_conf_ids'));
+		$cache_instance->delete('configuration_conf*');
 	}
 
 	/**

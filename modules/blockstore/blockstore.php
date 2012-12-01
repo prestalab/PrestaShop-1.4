@@ -86,6 +86,7 @@ class BlockStore extends Module
 	{
 		if (Tools::isSubmit('submitStoreConf'))
 		{
+			$this->_clearCache(__FILE__, 'blockstore.tpl');
 			if (isset($_FILES['store_img']) AND isset($_FILES['store_img']['tmp_name']) AND !empty($_FILES['store_img']['tmp_name']))
 			{
 				if ($error = checkImage($_FILES['store_img'], 4000000))

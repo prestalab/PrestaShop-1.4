@@ -39,7 +39,7 @@ class SitemapControllerCore extends FrontController
 	{
 		parent::process();
 		$id_lang = (int)(self::$cookie->id_lang);
-		$this->smartyCacheId = 'SitemapController|'.$id_lang;
+		$this->smartyCacheId = 'categories|cms|SitemapController|'.$id_lang;
 		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 24 Hours
 		Tools::enableCache();
 		if(!self::$smarty->isCached(_PS_THEME_DIR_.'sitemap.tpl', $this->smartyCacheId))

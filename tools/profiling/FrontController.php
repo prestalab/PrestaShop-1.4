@@ -283,7 +283,8 @@ class FrontController extends FrontControllerCore
 			}
 		arsort($globalSize);
 
- 	 	$totalCacheSize = 0;
+		$cache = Cache::retrieveAll();
+		$totalCacheSize = $this->sizeofvar($cache);
 
 		echo '<br /><br />
 		<div class="rte" style="text-align:left;padding:8px;float:left">

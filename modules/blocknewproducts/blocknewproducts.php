@@ -55,6 +55,7 @@ class BlockNewProducts extends Module
 		$output = '<h2>'.$this->displayName.'</h2>';
 		if (Tools::isSubmit('submitBlockNewProducts'))
 		{
+			$this->_clearCache(__FILE__, 'blocknewproducts.tpl');
 			if (!$productNbr = Tools::getValue('productNbr') OR empty($productNbr))
 				$output .= '<div class="alert error">'.$this->l('Please fill in the "products displayed" field.').'</div>';
 			elseif ((int)($productNbr) == 0)

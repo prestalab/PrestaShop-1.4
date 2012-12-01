@@ -212,7 +212,7 @@ class BlockCategories extends Module
 			}
 		}
 		$id_lang = (int)($params['cookie']->id_lang);
-		$smartyCacheId = 'blockcategories|'.$groups.'_'.$id_lang.'_'.(int)($cookie->last_visited_category);
+		$smartyCacheId = 'blockcategories|categories|'.$groups.'_'.$id_lang.'_'.(int)($cookie->last_visited_category);
 
 		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
 		Tools::enableCache();
@@ -257,7 +257,7 @@ class BlockCategories extends Module
 			}
 		}
 		$id_lang = (int)($params['cookie']->id_lang);
-		$smartyCacheId = 'blockcategories|'.$groups.'_'.$id_lang.'_'.(int)($cookie->last_visited_category);
+		$smartyCacheId = 'blockcategories|categories|'.$groups.'_'.$id_lang.'_'.(int)($cookie->last_visited_category);
 
 		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
 		Tools::enableCache();
@@ -305,9 +305,9 @@ class BlockCategories extends Module
 
 	private function _clearBlockcategoriesCache()
 	{
-		$this->_clearCache('blockcategories.tpl');
-		$this->_clearCache('blockcategories_footer.tpl');
-		Cache::getInstance()->delete(md5('categoriesTree'));
+		$this->_clearCache(__FILE__, 'blockcategories.tpl');
+		$this->_clearCache(__FILE__, 'blockcategories_footer.tpl');
+		Cache::getInstance()->delete('categoriesTree');
 		Tools::restoreCacheSettings();
 	}
 

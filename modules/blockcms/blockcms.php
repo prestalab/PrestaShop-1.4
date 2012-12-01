@@ -588,6 +588,7 @@ class BlockCms extends Module
 
 		if (Tools::isSubmit('submitBlockCMS'))
 		{
+			$this->_clearCache(__FILE__, 'blockcms.tpl');
 			$position = Db::getInstance()->getValue('
 			SELECT COUNT(*) 
 			FROM `'._DB_PREFIX_.'cms_block` 
@@ -725,7 +726,7 @@ class BlockCms extends Module
 	{
 		global $smarty;
 		$id_lang = (int)($params['cookie']->id_lang);
-		$smartyCacheId = 'blockcms-left|'.$id_lang;
+		$smartyCacheId = 'blockcms-left|cms|'.$id_lang;
 
 		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
 		Tools::enableCache();
@@ -747,7 +748,7 @@ class BlockCms extends Module
 	{
 		global $smarty;
 		$id_lang = (int)($params['cookie']->id_lang);
-		$smartyCacheId = 'blockcms-right|'.$id_lang;
+		$smartyCacheId = 'blockcms-right|cms|'.$id_lang;
 
 		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
 		Tools::enableCache();
@@ -772,7 +773,7 @@ class BlockCms extends Module
 		if (Configuration::get('FOOTER_BLOCK_ACTIVATION'))
 		{
 			$id_lang = (int)($params['cookie']->id_lang);
-			$smartyCacheId = 'blockcms-footer|'.$id_lang;
+			$smartyCacheId = 'blockcms-footer|cms|'.$id_lang;
 
 			$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
 			Tools::enableCache();

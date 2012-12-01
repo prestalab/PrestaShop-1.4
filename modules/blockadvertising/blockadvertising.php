@@ -98,7 +98,7 @@ class BlockAdvertising extends Module
 	 */
 	private function _deleteCurrentImg()
 	{
-
+		$this->_clearCache(__FILE__, 'blockadvertising.tpl');
 		if (file_exists(_PS_MODULE_DIR_.$this->name.'/'.$this->adv_imgname.'.'.Configuration::get('BLOCKADVERT_IMG_EXT')))
 			unlink(_PS_MODULE_DIR_.$this->name.'/'.$this->adv_imgname.'.'.Configuration::get('BLOCKADVERT_IMG_EXT'));
 		$this->adv_imgname = $this->adv_imgname == 'advertising_custom'?'advertising':'';
@@ -120,6 +120,7 @@ class BlockAdvertising extends Module
 		if (Tools::isSubmit('submitAdvConf'))
 		{
 			$file = false;
+			$this->_clearCache(__FILE__, 'blockadvertising.tpl');
 			if (isset($_FILES['adv_img']) AND isset($_FILES['adv_img']['tmp_name']) AND !empty($_FILES['adv_img']['tmp_name']))
 			{
 				if ($error = checkImage($_FILES['adv_img'], Tools::convertBytes(ini_get('upload_max_filesize'))))

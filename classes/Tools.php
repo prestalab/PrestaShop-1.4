@@ -2000,6 +2000,7 @@ FileETag INode MTime Size
 		/* Forcing Smarty to use the cache */
 		$smarty->force_compile = 0;
 		$smarty->caching = (int)$level;
+		$smarty->setCaching(Smarty::CACHING_LIFETIME_CURRENT);
 	}
 
 	public static function restoreCacheSettings()
@@ -2229,10 +2230,13 @@ FileETag INode MTime Size
 	 *
 	 * @param objet $smarty
 	 */
-	public static function clearCache($smarty)
+	public static function clearCache($smarty, $template = null, $cache_id = null, $compile_id = null)
 	{
 		if (!_PS_FORCE_SMARTY_2_)
-			$smarty->clearAllCache();
+			if($template||$cache_id)
+				$smarty->clearCache($template, $cache_id, $compile_id);
+			else
+				$smarty->clearAllCache();
 		else
 			$smarty->clear_all_cache();
 	}

@@ -96,7 +96,7 @@ class HomeFeatured extends Module
 		global $smarty;
 		$id_lang = (int)($params['cookie']->id_lang);
 		$id_currency = (int)($params['cookie']->id_currency);
-		$smartyCacheId = 'homefeatured|'.$id_lang.'-'.$id_currency;
+		$smartyCacheId = 'id_category_1|homefeatured|'.$id_lang.'-'.$id_currency;
 
 		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST'); // 1 Year
 		Tools::enableCache();

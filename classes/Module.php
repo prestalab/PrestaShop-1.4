@@ -103,14 +103,14 @@ abstract class ModuleCore
 		{
 			if (self::$modulesCache === null)
 			{
-				self::$modulesCache = Cache::getInstance()->get(md5('modulesCache'));
+				self::$modulesCache = Cache::getInstance()->get('modulesCache');
 				if(!self::$modulesCache)
 				{
 					$db = Db::getInstance();
 					$result = $db->ExecuteS('SELECT * FROM `'.bqSQL(_DB_PREFIX_.$this->table).'`', false);
 					while ($row = $db->nextRow($result))
 						self::$modulesCache[$row['name']] = $row;
-					Cache::getInstance()->set(md5('modulesCache'), self::$modulesCache);
+					Cache::getInstance()->set('modulesCache', self::$modulesCache);
 				}
 			}
 			if (isset(self::$modulesCache[$this->name]))
@@ -132,6 +132,7 @@ abstract class ModuleCore
 	{
 		if (!Validate::isModuleName($this->name))
 			die(Tools::displayError());
+		Module::dropCache();
 		$result = Db::getInstance()->getRow('
 		SELECT `id_module`
 		FROM `'._DB_PREFIX_.'module`
@@ -154,6 +155,7 @@ abstract class ModuleCore
 	{
 		if (!Validate::isUnsignedId($this->id))
 			return false;
+		Module::dropCache();
 		$result = Db::getInstance()->ExecuteS('
 		SELECT `id_hook`
 		FROM `'._DB_PREFIX_.'hook_module` hm
@@ -708,7 +710,7 @@ abstract class ModuleCore
 			$hookArgs['cart'] = $cart;
 		}
 		$hook_name = strtolower($hook_name);
-		self::$_hookModulesCache=Cache::getInstance()->get(md5('hookModulesCache'));
+		self::$_hookModulesCache=Cache::getInstance()->get('hookModulesCache');
 		if (!isset(self::$_hookModulesCache)||!self::$_hookModulesCache)
 		{
 			$db = Db::getInstance(_PS_USE_SQL_SLAVE_);
@@ -730,7 +732,7 @@ abstract class ModuleCore
 						self::$_hookModulesCache[$row['hook']] = array();
 					self::$_hookModulesCache[$row['hook']][] = array('id_hook' => $row['id_hook'], 'module' => $row['module'], 'id_module' => $row['id_module'], 'live_edit' => $row['live_edit'], 'time' => $row['time']);
 				}
-				Cache::getInstance()->set(md5('hookModulesCache'), self::$_hookModulesCache);
+				Cache::getInstance()->set('hookModulesCache', self::$_hookModulesCache);
 			}
 		}
 
@@ -758,10 +760,10 @@ abstract class ModuleCore
 				else
 				{
 					$cache_id=$array['module'].'|'.$hook_name.'|'.$hookArgs['cookie']->id_lang;
-					if(!($display = Cache::getInstance()->get(md5($cache_id))))
+					if(!($display = Cache::getInstance()->get($cache_id)))
 					{
 						$display = $moduleInstance->{'hook'.$hook_name}($hookArgs);
-						Cache::getInstance()->set(md5($cache_id), $display, $array['time']);
+						Cache::getInstance()->set($cache_id, $display, $array['time']);
 					}
 				}
 
@@ -921,6 +923,7 @@ abstract class ModuleCore
 		WHERE hm.`id_hook` = '.(int)($id_hook).'
 		ORDER BY hm.`position` '.((int)($way) ? 'ASC' : 'DESC')))
 			return false;
+		Module::dropCache();
 		foreach ($res as $key => $values)
 			if ((int)($values[$this->identifier]) == (int)($this->id))
 			{
@@ -955,6 +958,7 @@ abstract class ModuleCore
 	 */
 	public function cleanPositions($id_hook)
 	{
+		Module::dropCache();
 		$result = Db::getInstance()->ExecuteS('
 		SELECT `id_module`
 		FROM `'._DB_PREFIX_.'hook_module`
@@ -1110,10 +1114,13 @@ abstract class ModuleCore
 			return $smarty->is_cached($this->_getApplicableTemplateDir($template).$template, $cacheId, $compileId);
 	}
 
-	protected function _clearCache($template, $cacheId = null, $compileId = null)
+	protected function _clearCache($file, $template, $cacheId = null, $compileId = null)
 	{
+		$overloaded = self::_isTemplateOverloadedStatic(basename($file, '.php'), $template);
+		if($template)
+			$template = ($overloaded ? _PS_THEME_DIR_.'modules/'.basename($file, '.php') : _PS_MODULE_DIR_.basename($file, '.php')).'/'.$template;
 		global $smarty;
-		Tools::clearCache($smarty);
+		Tools::clearCache($smarty, $template, $cacheId, $compileId);
 	}
 
 	protected function _generateConfigXml()
@@ -1140,5 +1147,13 @@ abstract class ModuleCore
 	public function isHookableOn($hook_name)
 	{
 		return is_callable(array($this, 'hook'.ucfirst($hook_name)));
+	}
+
+
+	public static function dropCache()
+	{
+		$cache_instance=Cache::getInstance();
+		$cache_instance->delete('modulesCache');
+		$cache_instance->delete('hookModulesCache');
 	}
 }

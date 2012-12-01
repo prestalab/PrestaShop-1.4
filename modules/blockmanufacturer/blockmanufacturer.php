@@ -86,6 +86,7 @@ class BlockManufacturer extends Module
 		$output = '<h2>'.$this->displayName.'</h2>';
 		if (Tools::isSubmit('submitBlockManufacturers'))
 		{
+			$this->_clearCache(__FILE__, 'blockmanufacturer.tpl');
 			$text_list = (int)(Tools::getValue('text_list'));
 			$text_nb = (int)(Tools::getValue('text_nb'));
 			$form_list = (int)(Tools::getValue('form_list'));

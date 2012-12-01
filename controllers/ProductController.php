@@ -19,7 +19,8 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
+*  @copyright  2007-2012 PrestaShop SA
+
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -122,7 +123,7 @@ class ProductControllerCore extends FrontController
 			{
 				$id_lang = (int)(self::$cookie->id_lang);
 				$id_currency = (int)(self::$cookie->id_currency);
-				$this->smartyCacheId = 'ProductController|'.$id_lang.'-'.$id_currency.'-'.$this->product->id;
+				$this->smartyCacheId = 'id_product_'.$this->product->id.'|ProductController|'.$id_lang.'-'.$id_currency;
 				self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_SHORT'); // 24 Hours
 				if(!$this->product->customizable)
 					Tools::enableCache();

@@ -109,6 +109,7 @@ class BlockCart extends Module
 		$output = '<h2>'.$this->displayName.'</h2>';
 		if (Tools::isSubmit('submitBlockCart'))
 		{
+			$this->_clearCache(__FILE__, 'blockcart.tpl');
 			if (Tools::getValue('ps_display_tax') == 2)
 			{
 				Configuration::updateValue('PS_TAX_DISPLAY', 1);

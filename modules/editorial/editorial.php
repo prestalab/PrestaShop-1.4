@@ -123,6 +123,7 @@ class Editorial extends Module
 		// Delete logo image
 		if (Tools::isSubmit('deleteImage'))
 		{
+			$this->_clearCache(__FILE__, 'editorial.tpl');
 			if (!file_exists(dirname(__FILE__).'/homepage_logo.jpg'))
 				$errors .= $this->displayError($this->l('This action cannot be taken.'));
 			else
@@ -139,7 +140,7 @@ class Editorial extends Module
 		{
 			// Forbidden key
 			$forbidden = array('submitUpdate');
-			
+			$this->_clearCache(__FILE__, 'editorial.tpl');
 			$editorial = new EditorialClass(1);
 			$editorial->copyFromPost();
 			$editorial->update();

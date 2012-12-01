@@ -147,6 +147,7 @@ abstract class CacheCore
 	 */
 	public function set($key, $value, $ttl = 0)
 	{
+		//var_dump($key);
 		if ($this->_set($key, $value, $ttl))
 		{
 			if ($ttl < 0)
@@ -340,4 +341,13 @@ abstract class CacheCore
 			unset(Cache::$local[$key]);
 	}
 
+	public function setNumRows($key, $value, $expire = 0)
+	{
+		return $this->set($key.'_nrows', $value, $expire);
+	}
+
+	public function getNumRows($key)
+	{
+		return $this->get($key.'_nrows');
+	}
 }

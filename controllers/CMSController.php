@@ -93,7 +93,7 @@ class CmsControllerCore extends FrontController
 	{
 		parent::process();
 		$id_lang = (int)(self::$cookie->id_lang);
-		$this->smartyCacheId = 'CmsController|'.$id_lang.'-'.Tools::getValue('id_cms', 0).'-'.Tools::getValue('id_cms_category', 0);
+		$this->smartyCacheId = 'cms|CmsController|'.$id_lang.'-'.Tools::getValue('id_cms', 0).'-'.Tools::getValue('id_cms_category', 0);
 		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 24 Hours
 		Tools::enableCache();
 		if(!self::$smarty->isCached(_PS_THEME_DIR_.'cms.tpl', $this->smartyCacheId))

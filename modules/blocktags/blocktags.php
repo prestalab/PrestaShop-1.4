@@ -55,6 +55,7 @@ class BlockTags extends Module
 		$output = '<h2>'.$this->displayName.'</h2>';
 		if (Tools::isSubmit('submitBlockTags'))
 		{
+			$this->_clearCache(__FILE__, 'blocktags.tpl');
 			if (!$tagsNbr = Tools::getValue('tagsNbr') OR empty($tagsNbr))
 				$output .= '<div class="alert error">'.$this->l('Please fill in the "tags displayed" field.').'</div>';
 			elseif ((int)($tagsNbr) == 0)

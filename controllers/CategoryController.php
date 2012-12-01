@@ -91,7 +91,7 @@ class CategoryControllerCore extends FrontController
 		{
 			$id_lang = (int)(self::$cookie->id_lang);
 			$id_currency = (int)(self::$cookie->id_currency);
-			$this->smartyCacheId = 'CategoryController|'.$id_lang.'-'.$id_currency.'-'.$this->category->id.'-'.Tools::getValue('orderby').'-'.Tools::getValue('orderway').'-'.Tools::getValue('p');
+			$this->smartyCacheId = 'id_category_'.$this->category->id.'|CategoryController|'.$id_lang.'-'.$id_currency.'-'.Tools::getValue('orderby').'-'.Tools::getValue('orderway').'-'.Tools::getValue('p');
 			self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST'); // 24 Hours
 			Tools::enableCache();
 			if(!self::$smarty->isCached(_PS_THEME_DIR_.'category.tpl', $this->smartyCacheId))

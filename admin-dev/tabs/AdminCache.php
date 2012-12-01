@@ -130,7 +130,7 @@ class AdminCache extends AdminTab
 			Tools::redirectAdmin($currentIndex . '&token=' . $token);
 		} elseif (Tools::isSubmit('submitOptions' . $this->table)) {
 			global $smarty;
-			$smarty->clearAllCache();
+			Tools::clearCache($smarty);
 			Cache::getInstance()->flush();
 		}
 

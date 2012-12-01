@@ -25,18 +25,17 @@
 */
 
 /**
- * This class require PECL APC extension
+ * This class require Xcache extension
  *
  * @since 1.5.0
  */
-class CacheApcCore extends Cache
+class CacheXcacheCore extends Cache
 {
 	public function __construct()
 	{
-		$this->keys = array();
-		$cache_info = apc_cache_info('user');
-		foreach ($cache_info['cache_list'] as $entry)
-			$this->keys[$entry['info']] = $entry['ttl'];
+		$this->keys = xcache_get(self::KEYS_NAME);
+		if (!is_array($this->keys))
+			$this->keys = array();
 	}
 
 	/**
@@ -44,7 +43,7 @@ class CacheApcCore extends Cache
 	 */
 	protected function _set($key, $value, $ttl = 0)
 	{
-		return apc_store($key, $value, $ttl);
+		return xcache_set($key, $value, $ttl);
 	}
 
 	/**
@@ -52,7 +51,7 @@ class CacheApcCore extends Cache
 	 */
 	protected function _get($key)
 	{
-		return apc_fetch($key);
+		return xcache_isset($key) ? xcache_get($key) : false;
 	}
 
 	/**
@@ -60,7 +59,7 @@ class CacheApcCore extends Cache
 	 */
 	protected function _exists($key)
 	{
-		return isset($this->keys[$key]);
+		return xcache_isset($key);
 	}
 
 	/**
@@ -68,7 +67,7 @@ class CacheApcCore extends Cache
 	 */
 	protected function _delete($key)
 	{
-		return apc_delete($key);
+		return xcache_unset($key);
 	}
 
 	/**
@@ -76,6 +75,7 @@ class CacheApcCore extends Cache
 	 */
 	protected function _writeKeys()
 	{
+		xcache_set(self::KEYS_NAME, $this->keys);
 	}
 
 	/**
@@ -83,6 +83,7 @@ class CacheApcCore extends Cache
 	 */
 	public function flush()
 	{
-		return apc_clear_cache();
+		$this->delete('*');
+		return true;
 	}
 }

@@ -24,164 +24,136 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-class CacheFSCore extends Cache {
-	
-	protected $_depth;
-	
+class CacheFsCore extends Cache
+{
+	/**
+	 * @var int Number of subfolders to dispatch cached filenames
+	 */
+	protected $depth;
+
 	protected function __construct()
 	{
-		parent::__construct();
-		$this->_init();
-	}
-	
-	protected function _init()
-	{
-		$this->_depth = Db::getInstance()->getValue('SELECT value FROM '._DB_PREFIX_.'configuration WHERE name=\'PS_CACHEFS_DIRECTORY_DEPTH\'', false);
-		return $this->_setKeys();
+		$this->depth = Db::getInstance()->getValue('SELECT value FROM '._DB_PREFIX_.'configuration WHERE name= \'PS_CACHEFS_DIRECTORY_DEPTH\'', false);
+
+		$keys_filename = $this->getFilename(self::KEYS_NAME);
+		if (file_exists($keys_filename))
+			$this->keys = unserialize(file_get_contents($keys_filename));
 	}
 
-	public function set($key, $value, $expire = 0)
+	/**
+	 * @see Cache::_set()
+	 */
+	protected function _set($key, $value, $ttl = 0)
 	{
-		$path = _PS_CACHEFS_DIRECTORY_;
-		for ($i = 0; $i < $this->_depth; $i++)
-			$path .= $key[$i].'/';
-		if (@file_put_contents($path.$key, serialize($value)))
+		return (@file_put_contents($this->getFilename($key), serialize($value)));
+	}
+
+	/**
+	 * @see Cache::_get()
+	 */
+	protected function _get($key)
+	{
+		if ($this->keys[$key] > 0 && $this->keys[$key] < time())
 		{
-			$this->_keysCached[$key] = true;
+			$this->delete($key);
+			return false;
+		}
+
+		$filename = $this->getFilename($key);
+		if (!file_exists($filename))
+		{
+			unset($this->keys[$key]);
 			$this->_writeKeys();
-			return $key;
-		}
-		return false;
-	}
-	
-	public function setNumRows($key, $value, $expire = 0)
-	{
-		$this->_setKeys();
-		if (isset($this->_keysCached[$key.'_nrows']))
-			return true;
-		$return = $this->set($key.'_nrows', $value, $expire);
-		$this->_writeKeys();
-		return $return;
-	}
-	
-	public function getNumRows($key)
-	{
-		return $this->get($key.'_nrows');
-	}
-
-	public function get($key)
-	{
-		if (!isset($this->_keysCached[$key]))
-			return false;
-		$path = _PS_CACHEFS_DIRECTORY_;
-		for ($i = 0; $i < $this->_depth; $i++)
-			$path.=$key[$i].'/';
-		if (!file_exists($path.$key))
-		{
-			unset($this->_keysCached[$key]);
 			return false;
 		}
-		$file = file_get_contents($path.$key);
+		$file = file_get_contents($filename);
 		return unserialize($file);
 	}
 
-	protected function _setKeys()
+	/**
+	 * @see Cache::_exists()
+	 */
+	protected function _exists($key)
 	{
-		if (file_exists(_PS_CACHEFS_DIRECTORY_.'keysCached'))
+		if ($this->keys[$key] > 0 && $this->keys[$key] < time())
 		{
-			$file = file_get_contents(_PS_CACHEFS_DIRECTORY_.'keysCached');
-			$this->_keysCached = unserialize($file);
-		}
-		if (file_exists(_PS_CACHEFS_DIRECTORY_.'tablesCached'))
-		{
-			$file = file_get_contents(_PS_CACHEFS_DIRECTORY_.'tablesCached');
-			$this->_tablesCached = unserialize($file);
-		}
-		return true;
-	}
-
-	public function setQuery($query, $result)
-	{
-		$md5_query = md5($query);
-		if ($this->isBlacklist($query))
-			return true;
-		$this->_setKeys();
-		if (isset($this->_keysCached[$md5_query]))
-			return true;
-		$key = $this->set($md5_query, $result);
-		if (preg_match_all('/('._DB_PREFIX_.'[a-z_-]*)`?.*/i', $query, $res))
-			foreach ($res[1] as $table)
-				if (!isset($this->_tablesCached[$table][$key]))
-					$this->_tablesCached[$table][$key] = true;
-		$this->_writeTables();
-	}
-
-	public function delete($key, $timeout = 0)
-	{
-		$path = _PS_CACHEFS_DIRECTORY_;
-		if (!isset($this->_keysCached[$key]))
-			return;
-		for ($i = 0; $i < $this->_depth; $i++)
-			$path.=$key[$i].'/';
-		if (!file_exists($path.$key))
-			return true;
-		if (!unlink($path.$key))
+			$this->delete($key);
 			return false;
-		unset($this->_keysCached[$key]);
-		$this->_writeKeys();
-		return true;
+		}
+
+		return isset($this->keys[$key]) && file_exists($this->getFilename($key));
 	}
 
-	public function deleteQuery($query)
+	/**
+	 * @see Cache::_delete()
+	 */
+	protected function _delete($key)
 	{
-		$this->_setKeys();
-		if (preg_match_all('/('._DB_PREFIX_.'[a-z_-]*)`?.*/i', $query, $res))
-			foreach ($res[1] as $table)
-				if (isset($this->_tablesCached[$table]))
-				{
-					foreach (array_keys($this->_tablesCached[$table]) as $fsKey)
-					{
-						$this->delete($fsKey);
-						$this->delete($fsKey.'_nrows');
-					}
-					unset($this->_tablesCached[$table]);
-				}
-		$this->_writeTables();
+		$filename = $this->getFilename($key);
+		if (!file_exists($filename))
+			return true;
+		return unlink($filename);
 	}
 
+	/**
+	 * @see Cache::_writeKeys()
+	 */
+	protected function _writeKeys()
+	{
+		@file_put_contents($this->getFilename(self::KEYS_NAME), serialize($this->keys));
+	}
+
+	/**
+	 * @see Cache::flush()
+	 */
 	public function flush()
 	{
-		self::deleteCacheDirectory();
-		self::createCacheDirectories(Configuration::get('PS_CACHEFS_DIRECTORY_DEPTH'));
+		$this->delete('*');
+		return true;
 	}
 
-	private function _writeKeys()
-	{
-		@file_put_contents(_PS_CACHEFS_DIRECTORY_.'keysCached', serialize($this->_keysCached));
-	}
-
-	private function _writeTables()
-	{
-		@file_put_contents(_PS_CACHEFS_DIRECTORY_.'tablesCached', serialize($this->_tablesCached));
-	}
-
+	/**
+	 * Delete cache directory
+	 */
 	public static function deleteCacheDirectory()
 	{
 		Tools::deleteDirectory(_PS_CACHEFS_DIRECTORY_, false);
 	}
 
+	/**
+	 * Create cache directory
+	 *
+	 * @param int $level_depth
+	 * @param string $directory
+	 */
 	public static function createCacheDirectories($level_depth, $directory = false)
 	{
 		if (!$directory)
 			$directory = _PS_CACHEFS_DIRECTORY_;
 		$chars = '0123456789abcdef';
-		for ($i = 0; $i < strlen($chars); $i++)
+		for ($i = 0, $length = strlen($chars); $i < $length; $i++)
 		{
 			$new_dir = $directory.$chars[$i].'/';
 			if (mkdir($new_dir))
 				if (chmod($new_dir, 0777))
 					if ($level_depth - 1 > 0)
-						self::createCacheDirectories($level_depth - 1, $new_dir);
+						CacheFs::createCacheDirectories($level_depth - 1, $new_dir);
 		}
+	}
+
+	/**
+	 * Transform a key into its absolute path
+	 *
+	 * @param string $key
+	 * @return string
+	 */
+	protected function getFilename($key)
+	{
+		$key = md5($key);
+		$path = _PS_CACHEFS_DIRECTORY_;
+		for ($i = 0; $i < $this->depth; $i++)
+			$path .= $key[$i].'/';
+
+		return $path.$key;
 	}
 }

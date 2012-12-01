@@ -51,12 +51,14 @@ class AdminPerformance extends AdminTab
 					$this->_errors[] = Tools::displayError('Caching system is missing');
 				else
 					$settings = preg_replace('/define\(\'_PS_CACHING_SYSTEM_\', \'([a-z0-9=\/+-_]+)\'\);/Ui', 'define(\'_PS_CACHING_SYSTEM_\', \''.$caching_system.'\');', $settings);
-				if ($cache_active AND $caching_system == 'MCached' AND !extension_loaded('memcache'))
+				if ($cache_active AND $caching_system == 'CacheMemcache' AND !extension_loaded('memcache'))
 					$this->_errors[] = Tools::displayError('To use Memcached, you must install the Memcache PECL extension on your server.').' <a href="http://www.php.net/manual/en/memcache.installation.php">http://www.php.net/manual/en/memcache.installation.php</a>';
 				elseif ($cache_active AND $caching_system == 'CacheFS' AND !is_writable(_PS_CACHEFS_DIRECTORY_))
 					$this->_errors[] = Tools::displayError('To use CacheFS the directory').' '.realpath(_PS_CACHEFS_DIRECTORY_).' '.Tools::displayError('must be writable');
-				if ($cache_active AND $caching_system == 'CacheAPC' AND !extension_loaded('apc'))
+				elseif ($cache_active AND $caching_system == 'CacheApc' AND !extension_loaded('apc'))
 					$this->_errors[] = Tools::displayError('To use APC, you must install the APC extension on your server.');
+				elseif ($cache_active AND $caching_system == 'CacheXCache' AND !extension_loaded('xcache'))
+					$this->_errors[] = Tools::displayError('To use XCache, you must install the XCache extension on your server.');
 
 				if ($caching_system == 'CacheFS' && $cache_active)
 				{
@@ -69,9 +71,11 @@ class AdminPerformance extends AdminTab
 						Configuration::updateValue('PS_CACHEFS_DIRECTORY_DEPTH', (int)$depth);
 					}
 				}
-				elseif($caching_system == 'MCached' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'MCached')
+				elseif($caching_system == 'CacheMemcache' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheMemcache')
 					Cache::getInstance()->flush();
-				elseif($caching_system == 'CacheAPC' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheAPC')
+				elseif($caching_system == 'CacheAPC' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheApc')
+					Cache::getInstance()->flush();
+				elseif($caching_system == 'CacheXCache' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheXCache')
 					Cache::getInstance()->flush();
 				if (!sizeof($this->_errors))
 				{
@@ -97,7 +101,7 @@ class AdminPerformance extends AdminTab
 					$this->_errors[] = Tools::displayError('Memcached weight is missing');
 				if (!sizeof($this->_errors))
 				{
-					if (MCached::addServer(pSQL(Tools::getValue('memcachedIp')), (int)Tools::getValue('memcachedPort'), (int)Tools::getValue('memcachedWeight')))
+					if (CacheMemcache::addServer(pSQL(Tools::getValue('memcachedIp')), (int)Tools::getValue('memcachedPort'), (int)Tools::getValue('memcachedWeight')))
 						Tools::redirectAdmin($currentIndex.'&token='.Tools::getValue('token').'&conf=4');
 					else
 						$this->_errors[] = Tools::displayError('Cannot add Memcached server');
@@ -110,7 +114,7 @@ class AdminPerformance extends AdminTab
 		{
 			if ($this->tabAccess['add'] === '1')
 			{
-				if (MCached::deleteServer((int)Tools::getValue('deleteMemcachedServer')))
+				if (CacheMemcache::deleteServer((int)Tools::getValue('deleteMemcachedServer')))
 					Tools::redirectAdmin($currentIndex.'&token='.Tools::getValue('token').'&conf=4');
 				else
 					$this->_errors[] = Tools::displayError('Error in deleting Memcached server');
@@ -235,6 +239,8 @@ class AdminPerformance extends AdminTab
 			$warnings[] = $this->l('To use Memcached, you must install the Memcache PECL extension on your server.').' <a href="http://www.php.net/manual/en/memcache.installation.php">http://www.php.net/manual/en/memcache.installation.php</a>';
 		if (!extension_loaded('apc'))
 			$warnings[] = $this->l('To use APC, you must install the APC extension on your server.');
+		if (!extension_loaded('xcache'))
+			$warnings[] = $this->l('To use Xcache, you must install the Xcache extension on your server.');
 		if (!is_writable(_PS_CACHEFS_DIRECTORY_))
 			$warnings[] = $this->l('To use CacheFS the directory').' '.realpath(_PS_CACHEFS_DIRECTORY_).' '.$this->l('must be writable');
 
@@ -254,7 +260,7 @@ class AdminPerformance extends AdminTab
 							});
 							function showMemcached()
 							{
-								if ($(\'#caching_system option:selected\').val() == \'MCached\')
+								if ($(\'#caching_system option:selected\').val() == \'CacheMemcache\')
 								{
 									$(\'#memcachedServers\').show();
 									$(\'#directory_depth\').hide();
@@ -264,7 +270,12 @@ class AdminPerformance extends AdminTab
 									$(\'#memcachedServers\').hide();
 									$(\'#directory_depth\').show();
 								}
-								if ($(\'#caching_system option:selected\').val() == \'CacheAPC\')
+								if ($(\'#caching_system option:selected\').val() == \'CacheApc\')
+								{
+									$(\'#memcachedServers\').hide();
+									$(\'#directory_depth\').hide();
+								}
+								if ($(\'#caching_system option:selected\').val() == \'CacheXcache\')
 								{
 									$(\'#memcachedServers\').hide();
 									$(\'#directory_depth\').hide();
@@ -449,9 +460,11 @@ class AdminPerformance extends AdminTab
 					<label>'.$this->l('Caching system:').' </label>
 					<div class="margin-form">
 						<select name="caching_system" id="caching_system">
-							<option value="MCached" '.(_PS_CACHING_SYSTEM_ == 'MCached' ? 'selected="selected"' : '' ).'>'.$this->l('Memcached').'</option>
+							<option value="CacheMemcache" '.(_PS_CACHING_SYSTEM_ == 'MCached' ? 'selected="selected"' : '' ).'>'.$this->l('Memcached').'</option>
 							<option value="CacheFS" '.(_PS_CACHING_SYSTEM_ == 'CacheFS' ? 'selected="selected"' : '' ).'>'.$this->l('File System').'</option>
-							<option value="CacheAPC" '.(_PS_CACHING_SYSTEM_ == 'CacheAPC' ? 'selected="selected"' : '' ).'>'.$this->l('APC').'</option>
+							<option value="CacheApc" '.(_PS_CACHING_SYSTEM_ == 'CacheApc' ? 'selected="selected"' : '' ).'>'.$this->l('APC').'</option>
+							<option value="CacheXcache" '.(_PS_CACHING_SYSTEM_ == 'CacheXcache' ? 'selected="selected"' : '' ).'>'.$this->l('XCache').'</option>
+
 						</select>
 					</div>
 					<div id="directory_depth">
@@ -488,7 +501,7 @@ class AdminPerformance extends AdminTab
 							</div>
 						</form>
 					</div>';
-			$servers = MCached::getMemcachedServers();
+			$servers = CacheMemcache::getMemcachedServers();
 			if ($servers)
 			{
 				echo '<div class="margin-form">

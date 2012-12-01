@@ -20,56 +20,57 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision: 17111 $
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-class CacheNoCore extends Cache {
-
-	public function set($key, $value, $expire = 0)
-	{
-		return false;
-	}
-	
-	public function setNumRows($key, $value, $expire = 0)
-	{
-		return false;
-	}
-	
-	public function getNumRows($key)
+class CacheNoCore extends Cache
+{
+	/**
+	 * @see Cache::_set()
+	 */
+	protected function _set($key, $value, $ttl = 0)
 	{
 		return false;
 	}
 
-	public function get($key)
+	/**
+	 * @see Cache::_get()
+	 */
+	protected function _get($key)
 	{
 		return false;
 	}
 
-	protected function _setKeys()
+	/**
+	 * @see Cache::_exists()
+	 */
+	protected function _exists($key)
 	{
 		return false;
 	}
 
-	public function setQuery($query, $result)
+	/**
+	 * @see Cache::_delete()
+	 */
+	protected function _delete($key)
 	{
 		return false;
 	}
 
-	public function delete($key, $timeout = 0)
+	/**
+	 * @see Cache::_writeKeys()
+	 */
+	protected function _writeKeys()
 	{
 		return false;
 	}
 
-	public function deleteQuery($query)
-	{
-		return false;
-	}
-
+	/**
+	 * @see Cache::flush()
+	 */
 	public function flush()
 	{
 		return false;
 	}
-
 }

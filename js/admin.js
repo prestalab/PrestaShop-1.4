@@ -837,18 +837,6 @@ function showOptions(show)
 		$('tr#product_options').slideUp('slow');
 }
 
-function submitAddProductAndPreview()
-{
-	$('#fakeSubmitAddProductAndPreview').attr('name','submitAddProductAndPreview');
-	$('#product').submit();
-}
-
-function submitAddcmsAndPreview()
-{
-	$('#previewSubmitAddcmsAndPreview').attr('name','submitAddcmsAndPreview');
-	$('#cms').submit();
-}
-
 function showHelp(url, label, iso_lang, ps_version, doc_version, country)
 {
     trackClickOnHelp(label, doc_version);

@@ -106,16 +106,24 @@ class CmsControllerCore extends FrontController
 			{
 				self::$smarty->assign(array(
 					'cms' => $this->cms,
+					'cms_categories' => $this->cms->getCategories(self::$cookie->id_lang),
+					'products' => $this->cms->getProducts(self::$cookie->id_lang),
+					'HOOK_CMS_FOOTER' => Module::hookExec('cmsFooter', array('cms' => $this->cms)),
 					'content_only' => (int)(Tools::getValue('content_only')),
 					'path' => ((isset($this->cms->id_cms_category) AND $this->cms->id_cms_category) ? Tools::getFullPath((int)($this->cms->id_cms_category), $this->cms->meta_title, 'CMS') : Tools::getFullPath(1, $this->cms->meta_title, 'CMS'))
 				));
 			}
 			elseif ($this->assignCase == 2)
 			{
+				$cms_pages = CMS::getCMSPages((int)(self::$cookie->id_lang), (int)($this->cms_category->id) );
+				foreach ($cms_pages AS &$row)
+					$row['image'] = (!file_exists(_PS_IMG_DIR_.'cms/'.$row['id_cms'].'.jpg')) ? false : true;
+				unset($row);
 				self::$smarty->assign(array(
 					'category' => $this->cms_category,
+					'HOOK_CMS_CATEGORY' => Module::hookExec('cmsCategory', array('cms_category' => $this->cms_category)),
 					'sub_category' => $this->cms_category->getSubCategories((int)(self::$cookie->id_lang)),
-					'cms_pages' => CMS::getCMSPages((int)(self::$cookie->id_lang), (int)($this->cms_category->id) ),
+					'cms_pages' => $cms_pages,
 					'path' => ($this->cms_category->id !== 1) ? Tools::getPath((int)($this->cms_category->id), $this->cms_category->name, false, 'CMS') : '',
 				));
 			}

@@ -26,6 +26,12 @@
 
 class CMSCore extends ObjectModel
 {
+	public $title;
+	public $description_short;
+	public $comment;
+	public $date_add;
+	public $date_upd;
+
 	public $meta_title;
 	public $meta_description;
 	public $meta_keywords;
@@ -35,18 +41,26 @@ class CMSCore extends ObjectModel
 	public $position;
 	public $active;
 
+	public  $image_dir;
+
  	protected $fieldsValidate = array('id_cms_category' => 'isUnsignedInt');
-	protected $fieldsRequiredLang = array('meta_title', 'link_rewrite');
-	protected $fieldsSizeLang = array('meta_description' => 255, 'meta_keywords' => 255, 'meta_title' => 128, 'link_rewrite' => 128, 'content' => 3999999999999);
-	protected $fieldsValidateLang = array('meta_description' => 'isGenericName', 'meta_keywords' => 'isGenericName', 'meta_title' => 'isGenericName', 'link_rewrite' => 'isLinkRewrite', 'content' => 'isString');
+	protected $fieldsRequiredLang = array('title', 'link_rewrite');
+	protected $fieldsSizeLang = array('title' => 255,'description_short' => 255,'meta_description' => 255, 'meta_keywords' => 255, 'meta_title' => 128, 'link_rewrite' => 128, 'content' => 3999999999999);
+	protected $fieldsValidateLang = array('meta_description' => 'isGenericName', 'meta_keywords' => 'isGenericName', 'meta_title' => 'isGenericName', 'link_rewrite' => 'isLinkRewrite', 'content' => 'isString', 'title' => 'isGenericName', 'description_short' => 'isString');
 
 	protected $table = 'cms';
 	protected $identifier = 'id_cms';
+	public		$id_image = 'default';
 	
 	protected	$webserviceParameters = array(
 		'objectNodeName' => 'content',
 		'objectsNodeName' => 'content_management_system',
 	);
+
+	public function __construct($id = NULL, $id_lang = NULL){
+		$this->image_dir=_PS_IMG_DIR_.'cms/';
+		parent::__construct($id, $id_lang);
+	}
 
 	public function getFields() 
 	{ 
@@ -55,6 +69,9 @@ class CMSCore extends ObjectModel
 		$fields['id_cms_category'] = (int)$this->id_cms_category;
 		$fields['position'] = (int)$this->position;
 		$fields['active'] = (int)$this->active;
+		$fields['date_add'] = pSQL($this->date_add);
+		$fields['date_upd'] = pSQL($this->date_upd);
+		$fields['comment'] = (int)$this->comment;
 		return $fields;	 
 	}
 	
@@ -62,7 +79,7 @@ class CMSCore extends ObjectModel
 	{
 		parent::validateFieldsLang();
 
-		$fieldsArray = array('meta_title', 'meta_description', 'meta_keywords', 'link_rewrite');
+		$fieldsArray = array('meta_title', 'meta_description', 'meta_keywords', 'link_rewrite', 'title');
 		$fields = array();
 		$languages = Language::getLanguages(false);
 		$defaultLanguage = (int)(_PS_LANG_DEFAULT_);
@@ -71,6 +88,7 @@ class CMSCore extends ObjectModel
 			$fields[$language['id_lang']]['id_lang'] = (int)($language['id_lang']);
 			$fields[$language['id_lang']][$this->identifier] = (int)($this->id);
 			$fields[$language['id_lang']]['content'] = (isset($this->content[$language['id_lang']])) ? pSQL($this->content[$language['id_lang']], true) : '';
+			$fields[$language['id_lang']]['description_short'] = (isset($this->description_short[$language['id_lang']])) ? pSQL($this->description_short[$language['id_lang']], true) : '';
 			foreach ($fieldsArray as $field)
 			{
 				if (!Validate::isTableOrIdentifier($field))
@@ -91,7 +109,7 @@ class CMSCore extends ObjectModel
 		$this->position = CMS::getLastPosition((int)$this->id_cms_category);
 		return parent::add($autodate, true); 
 	}
-	
+
 	public function update($nullValues = false)
 	{
 		if (parent::update($nullValues))
@@ -102,7 +120,16 @@ class CMSCore extends ObjectModel
 	public function delete()
 	{
 	 	if (parent::delete())
+		 {
+			if ($this->id == Configuration::get('PS_CONDITIONS_CMS_ID'))
+			{
+				 Configuration::updateValue('PS_CONDITIONS', 0);
+				 Configuration::updateValue('PS_CONDITIONS_CMS_ID', 0);
+			}
+			$this->cleanCategories();
+			$this->cleanProducts();
 			return $this->cleanPositions($this->id_cms_category);
+		 }
 		return false;
 	}
 
@@ -248,5 +275,106 @@ class CMSCore extends ObjectModel
 		FROM `'._DB_PREFIX_.'cms_lang` c
 		LEFT JOIN  `'._DB_PREFIX_.'lang` l ON (c.`id_lang` = l.`id_lang`)
 		WHERE c.`id_cms` = '.(int)$id_cms.'	AND l.`active` = 1');
+	}
+
+	/**
+	 * Get categories where product is indexed
+	 *
+	 * @param integer $id_product Product id
+	 * @return array Categories where product is indexed
+	 */
+	public static function getIndexedCategories($id_cms)
+	{
+		$result = Db::getInstance()->ExecuteS('
+		SELECT `id_cms_category`
+		FROM `'._DB_PREFIX_.'cms_category_cms`
+		WHERE `id_cms` = '.(int)$id_cms);
+		$return = array();
+		foreach($result as $val)
+			$return[] = $val['id_cms_category'];
+		return $return;
+	}
+
+	public function getCategories($id_lang)
+	{
+		$result = Db::getInstance()->ExecuteS('
+		SELECT ccc.`id_cms_category`, ccl.*
+		FROM `'._DB_PREFIX_.'cms_category_cms` ccc
+		LEFT JOIN `'._DB_PREFIX_.'cms_category_lang` ccl ON (ccc.`id_cms_category` = ccl.`id_cms_category` AND ccl.`id_lang`='.(int)$id_lang.')
+		WHERE `id_cms` = '.(int)$this->id);
+		global $link;
+		foreach($result as &$row)
+			$row['link'] = $link->getCMSCategoryLink((int)$row['id_cms_category'], $row['link_rewrite'], (int)$id_lang);
+		unset($row);
+		return $result;
+	}
+
+	public function cleanCategories()
+	{
+		Db::getInstance()->Execute('DELETE FROM `'._DB_PREFIX_.'cms_category_cms` WHERE `id_cms` = '.(int)$this->id);
+	}
+
+	public function addCategories($groups)
+	{
+		foreach ($groups as $group)
+		{
+			$row = array('id_cms' => (int)$this->id, 'id_cms_category' => (int)$group);
+			Db::getInstance()->AutoExecute(_DB_PREFIX_.'cms_category_cms', $row, 'INSERT');
+		}
+	}
+
+	public function addProducts($groups)
+	{
+		foreach ($groups as $group)
+		{
+			$row = array('id_cms' => (int)$this->id, 'id_product' => (int)$group);
+			Db::getInstance()->AutoExecute(_DB_PREFIX_.'cms_product', $row, 'INSERT');
+		}
+	}
+
+	public function getProductsLite($id_lang)
+	{
+		$result = Db::getInstance()->ExecuteS('
+			SELECT cp.`id_product`, pl.`name`
+			FROM '._DB_PREFIX_.'cms_product cp
+		 	LEFT JOIN `'._DB_PREFIX_.'product_lang` pl ON cp.`id_product` = pl.`id_product` AND pl.`id_lang` = '.(int)$id_lang.'
+		 WHERE cp.`id_cms` = '.(int)$this->id);
+		return $result;
+	}
+
+	public function getProducts($id_lang, $active = true)
+	{
+		$sql = '
+		SELECT p.*, pa.`id_product_attribute`, pl.`description`, pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`,
+		pl.`meta_description`, pl.`meta_keywords`, pl.`meta_title`, pl.`name`, i.`id_image`, il.`legend`, m.`name` manufacturer_name,
+		tl.`name` tax_name, t.`rate`, cl.`name` category_default, DATEDIFF(p.`date_add`, DATE_SUB(NOW(),
+		INTERVAL '.(Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20).' DAY)) > 0 new
+		FROM `'._DB_PREFIX_.'cms_product` cp
+		LEFT JOIN `'._DB_PREFIX_.'product` p ON (p.`id_product` = cp.`id_product`)
+		LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (p.`id_product` = pa.`id_product` AND default_on = 1)
+		LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON (p.`id_category_default` = cl.`id_category` AND cl.`id_lang` = '.(int)$id_lang.')
+		LEFT JOIN `'._DB_PREFIX_.'product_lang` pl ON (p.`id_product` = pl.`id_product` AND pl.`id_lang` = '.(int)$id_lang.')
+		LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product` AND i.`cover` = 1)
+		LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
+		LEFT JOIN `'._DB_PREFIX_.'tax_rule` tr ON (p.`id_tax_rules_group` = tr.`id_tax_rules_group` AND tr.`id_country` = '.(int)Country::getDefaultCountryId().' AND tr.`id_state` = 0)
+		LEFT JOIN `'._DB_PREFIX_.'tax` t ON (t.`id_tax` = tr.`id_tax`)
+		LEFT JOIN `'._DB_PREFIX_.'tax_lang` tl ON (t.`id_tax` = tl.`id_tax` AND tl.`id_lang` = '.(int)$id_lang.')
+		LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON m.`id_manufacturer` = p.`id_manufacturer`
+		WHERE cp.`id_cms` = '.(int)$this->id.($active ? ' AND p.`active` = 1' : '');
+
+		$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS($sql);
+
+		if (!$result)
+			return false;
+
+		/* Modify SQL result */
+		return Product::getProductsProperties((int)$id_lang, $result);
+	}
+
+	public function cleanProducts($id_product = false)
+	{
+		return Db::getInstance()->Execute('
+		DELETE FROM `'._DB_PREFIX_.'cms_product`
+		WHERE `id_cms` = '.(int)$this->id).($id_product?' AND `id_product`='.(int)$id_product:'');
 	}
 }

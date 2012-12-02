@@ -247,18 +247,35 @@ CREATE TABLE `PREFIX_cms` (
   `id_cms_category` int(10) unsigned NOT NULL,
   `position` int(10) unsigned NOT NULL DEFAULT '0',
   `active` tinyint(1) unsigned NOT NULL default '0',
+  `comment` TINYINT( 1 ) DEFAULT 1 ,
+  `date_add` DATETIME NOT NULL ,
+  `date_upd` DATETIME NOT NULL,
   PRIMARY KEY (`id_cms`)
 ) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
 
 CREATE TABLE `PREFIX_cms_lang` (
   `id_cms` int(10) unsigned NOT NULL,
   `id_lang` int(10) unsigned NOT NULL,
+  `description_short` TEXT NOT NULL,
+  `title` VARCHAR( 255 ) NOT NULL,
   `meta_title` varchar(128) NOT NULL,
   `meta_description` varchar(255) default NULL,
   `meta_keywords` varchar(255) default NULL,
   `content` longtext,
   `link_rewrite` varchar(128) NOT NULL,
   PRIMARY KEY  (`id_cms`,`id_lang`)
+) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
+
+CREATE TABLE `PREFIX_cms_product` (
+  `id_cms` int(10) unsigned NOT NULL auto_increment,
+  `id_product` int(10) unsigned NOT NULL,
+  UNIQUE KEY `idx_cms_product` (`id_cms`, `id_product`)
+) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
+
+CREATE TABLE `PREFIX_cms_category_cms` (
+  `id_cms_category` int(10) NOT NULL,
+  `id_cms` int(10) unsigned NOT NULL,
+  UNIQUE KEY `idx_cms_category` (`id_cms_category`, `id_cms`)
 ) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
 
 CREATE TABLE `PREFIX_cms_category` (

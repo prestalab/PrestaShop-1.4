@@ -74,9 +74,11 @@ class AdminCMSContent extends AdminTab
 
 	public function postProcess()
 	{
-		if (Tools::isSubmit('submitDelcms') OR Tools::isSubmit('previewSubmitAddcmsAndPreview') OR Tools::isSubmit('submitAddcms') OR isset($_GET['deletecms']) OR Tools::isSubmit('viewcms') OR (Tools::isSubmit('statuscms') AND Tools::isSubmit('id_cms')) OR (Tools::isSubmit('position') AND !Tools::isSubmit('id_cms_category_to_move')))
+		if(Tools::isSubmit('viewcms'))
+			$this->adminCMS->viewcms();
+		elseif (Tools::isSubmit('submitDelcms') OR Tools::isSubmit('deleteImage') OR Tools::isSubmit('submitAddcms') OR Tools::isSubmit('submitAddcmsAndStay') OR isset($_GET['deletecms']) OR (Tools::isSubmit('statuscms') AND Tools::isSubmit('id_cms')) OR (Tools::isSubmit('position') AND !Tools::isSubmit('id_cms_category_to_move')))
 			$this->adminCMS->postProcess();
-		if (Tools::isSubmit('submitDelcms_category') OR Tools::isSubmit('submitAddcms_categoryAndBackToParent') OR Tools::isSubmit('submitAddcms_category') OR isset($_GET['deletecms_category']) OR (Tools::isSubmit('statuscms_category') AND Tools::isSubmit('id_cms_category')) OR (Tools::isSubmit('position') AND Tools::isSubmit('id_cms_category_to_move')))
+		elseif (Tools::isSubmit('submitDelcms_category') OR Tools::isSubmit('submitAddcms_categoryAndBackToParent') OR Tools::isSubmit('submitAddcms_category') OR isset($_GET['deletecms_category']) OR (Tools::isSubmit('statuscms_category') AND Tools::isSubmit('id_cms_category')) OR (Tools::isSubmit('position') AND Tools::isSubmit('id_cms_category_to_move')))
 			$this->adminCMSCategories->postProcess();
 
 	}

@@ -39,9 +39,25 @@
 			</p>
 		</div>
 	{/if}
+	<h1>{$cms->title|escape:'htmlall':'UTF-8'}{if $cms->comment} <span>{dateFormat date=$cms->date_add|escape:'html':'UTF-8' full=0}</span>{/if}</h1>
 	<div class="rte{if $content_only} content_only{/if}">
 		{$cms->content}
 	</div>
+	{if $cms->comment}
+	<div class="cms_categories_list">
+		<ul>
+			<li><strong> {l s='Posted on'}</strong></li>
+			{foreach from=$cms_categories item=category name=category_list}
+				<li><a href="{$category.link}" title="{$category.name}">{$category.name}</a>{if !$smarty.foreach.category_list.last},{/if}</li>
+			{/foreach}
+		</ul>
+		<div class="clear"></div>
+	</div>
+	{/if}
+	{if $products}
+		{include file="$tpl_dir./product-list.tpl" products=$products}
+	{/if}
+	{$HOOK_CMS_FOOTER}
 {elseif isset($category)}
 	<div class="block-cms">
 		<h1><a href="{if $category->id eq 1}{$base_dir}{else}{$link->getCategoryLink($category->id, $category->link_rewrite)}{/if}">{$category->name|escape:'htmlall':'UTF-8'}</a></h1>
@@ -57,11 +73,20 @@
 		{/if}
 		{if isset($cms_pages) & !empty($cms_pages)}
 		<h4>{l s='List of pages in'}&nbsp;{$category->name}{l s=':'}</h4>
-			<ul class="bullet">
+			<ul id="product_list" class="clear">
 				{foreach from=$cms_pages item=cmspages}
-					<li>
-						<a href="{$link->getCMSLink($cmspages.id_cms, $cmspages.link_rewrite)|escape:'htmlall':'UTF-8'}">{$cmspages.meta_title|escape:'htmlall':'UTF-8'}</a>
+					<li class="clearfix">
+						<div>
+							{if $cmspages.image}<a href="{$link->getCMSLink($cmspages.id_cms, $cmspages.link_rewrite)|escape:'htmlall':'UTF-8'}" class="product_img_link" title="{$cmspages.title|escape:'htmlall':'UTF-8'}">
+								<img src="{$img_ps_dir}cms/{$cmspages.id_cms}.jpg" alt="{$cmspages.title|escape:'htmlall':'UTF-8'}" width="129" height="129" />
+							</a>{/if}
+							<h3><a href="{$link->getCMSLink($cmspages.id_cms, $cmspages.link_rewrite)|escape:'htmlall':'UTF-8'}" title="{$cmspages.title|escape:'htmlall':'UTF-8'}">{$cmspages.title|escape:35:'...'|escape:'htmlall':'UTF-8'}</a></h3>
+							<p class="product_desc"><a href="{$link->getCMSLink($cmspages.id_cms, $cmspages.link_rewrite)|escape:'htmlall':'UTF-8'}" title="{$cmspages.description_short|strip_tags:'UTF-8'|truncate:360:'...'}">{$cmspages.description_short}</a></p>
+						</div>
 					</li>
+					{*<li>
+						<a href="{$link->getCMSLink($cmspages.id_cms, $cmspages.link_rewrite)|escape:'htmlall':'UTF-8'}">{$cmspages.meta_title|escape:'htmlall':'UTF-8'}</a>
+					</li>*}
 				{/foreach}
 			</ul>
 		{/if}

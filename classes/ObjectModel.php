@@ -236,7 +236,6 @@ abstract class ObjectModelCore
 		/* Automatically fill dates */
 		if (property_exists($this, 'date_upd'))
 			$this->date_upd = date('Y-m-d H:i:s');
-
 		/* Database update */
 		if ($nullValues)
 			$result = Db::getInstance()->autoExecuteWithNullValues(_DB_PREFIX_.$this->table, $this->getFields(), 'UPDATE', '`'.pSQL($this->identifier).'` = '.(int)$this->id);

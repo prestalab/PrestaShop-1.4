@@ -34,3 +34,26 @@ INSERT IGNORE INTO `ps_configuration` (`name`, `value`) VALUES
 INSERT IGNORE INTO `PREFIX_configuration` (`name`, `value`) VALUES
 ('PS_PDF_FONT_RU', 'courier');
 
+/* CMS */
+ALTER TABLE  `PREFIX_cms_lang` ADD  `description_short` TEXT NOT NULL,
+ADD  `title` VARCHAR( 255 ) NOT NULL;
+ALTER TABLE  `PREFIX_cms` ADD  `comment` TINYINT( 1 ) DEFAULT 1 ,
+ADD  `date_add` DATETIME NOT NULL ,
+ADD  `date_upd` DATETIME NOT NULL;
+UPDATE `PREFIX_cms_lang` SET `title`=`meta_title`, `description_short`=`meta_description`;
+UPDATE `PREFIX_cms` SET `date_add`=NOW(), `date_upd`=NOW();
+CREATE TABLE `PREFIX_cms_product` (
+  `id_cms` int(10) unsigned NOT NULL auto_increment,
+  `id_product` int(10) unsigned NOT NULL,
+  UNIQUE KEY `idx_cms_product` (`id_cms`, `id_product`)
+) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
+CREATE TABLE `PREFIX_cms_category_cms` (
+  `id_cms_category` int(10) NOT NULL,
+  `id_cms` int(10) unsigned NOT NULL,
+  UNIQUE KEY `idx_cms_category` (`id_cms_category`, `id_cms`)
+) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
+INSERT INTO `PREFIX_cms_category_cms` (`id_cms_category`, `id_cms`) SELECT `id_cms_category`, `id_cms` FROM `PREFIX_cms`;
+INSERT INTO `PREFIX_hook` (`name`, `title`, `description`, `position`) VALUES ('cmsFooter', 'CMS page footer', NULL, 0);
+INSERT INTO `PREFIX_hook` (`name`, `title`, `description`, `position`) VALUES ('cmsCategory', 'CMS category page footer', NULL, 0);
+
+

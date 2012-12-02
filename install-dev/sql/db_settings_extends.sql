@@ -67,7 +67,7 @@ INSERT INTO `PREFIX_hook_module` (`id_module`, `id_hook`, `position`) VALUES (3,
 (35, 33, 2),(36, 33, 3),(37, 33, 4),(39, 37, 1),(40, 32, 8),(41, 32, 9),(42, 32, 10),(42, 95, 1),(43, 32, 11),(42, 14, 6),(43, 14, 7),(44, 32, 12),(45, 32, 13),(46, 32, 15),
 (47, 32, 14),(48, 32, 16),(49, 32, 17),(55, 32, 22),(50, 32, 18),(51, 32, 19),(51, 45, 1),(25, 25, 1),(41, 20, 2),(52, 32, 20),(53, 32, 21),(17, 9, 2),(18, 9, 3),(24, 9, 4),(9, 9, 5),
 (15, 9, 6),(5, 9, 7),(8, 9, 8),(10, 9, 9),(20, 9, 10),(11, 9, 11),(16, 9, 12),(22, 9, 13),(13, 9, 14),(14, 9, 15),(12, 9, 16),(7, 9, 17),(21, 9, 18),(10, 60, 1),(10, 61, 1),(10, 62, 1),
-(54, 9, 19),(10, 66, 1),(19, 9, 20),(56, 9, 1),(56, 50, 1),(56, 54, 1),(57, 5, 1, 0),(57, 12, 1, 0),(57, 13, 1, 0),(57, 16, 1, 0),(57, 60, 2, 0),(57, 61, 2, 0),(57, 62, 2, 0);
+(54, 9, 19),(10, 66, 1),(19, 9, 20),(56, 9, 1),(56, 50, 1),(56, 54, 1),(57, 5, 1),(57, 12, 1),(57, 13, 1),(57, 16, 1),(57, 60, 2),(57, 61, 2),(57, 62, 2);
 
 CREATE TABLE `PREFIX_pagenotfound` (
   `id_pagenotfound` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -1210,3 +1210,7 @@ INSERT IGNORE INTO `PREFIX_scene_lang` (`id_scene`, `id_lang`, `name`) VALUES
 (1, 6, 'The iPods Nano'),
 (2, 6, 'The iPods'),
 (3, 6, 'The MacBooks');
+
+UPDATE `PREFIX_cms_lang` SET `title`=`meta_title`, `description_short`=`meta_description`;
+UPDATE `PREFIX_cms` SET `date_add`=NOW(), `date_upd`=NOW();
+INSERT INTO `PREFIX_cms_category_cms` (`id_cms_category`, `id_cms`) SELECT `id_cms_category`, `id_cms` FROM `PREFIX_cms`;

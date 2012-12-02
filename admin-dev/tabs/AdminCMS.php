@@ -20,6 +20,7 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
+*  @version  Release: $Revision: 16425 $
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -38,11 +39,14 @@ class AdminCMS extends AdminTab
 	 	$this->edit = true;
 	 	$this->view = true;
 	 	$this->delete = true;
+
+		$this->fieldImageSettings = array('name' => 'logo', 'dir' => 'cms');
 		
 		$this->fieldsDisplay = array(
 			'id_cms' => array('title' => $this->l('ID'), 'align' => 'center', 'width' => 25),
-			'link_rewrite' => array('title' => $this->l('URL'), 'width' => 200),
-			'meta_title' => array('title' => $this->l('Title'), 'width' => 300),
+			'date_add' => array('title' => $this->l('Date'), 'width' => 100),
+			'title' => array('title' => $this->l('Title'), 'width' => 200),
+			'description_short' => array('title' => $this->l('Description'), 'width' => 280, 'html' => true),
 			'position' => array('title' => $this->l('Position'), 'width' => 40,'filter_key' => 'position', 'align' => 'center', 'position' => 'position'),
 			'active' => array('title' => $this->l('Enabled'), 'width' => 25, 'align' => 'center', 'active' => 'status', 'type' => 'bool', 'orderby' => false)
 			);
@@ -55,92 +59,78 @@ class AdminCMS extends AdminTab
 		
 		parent::__construct();
 	}
-	
-	private function _displayDraftWarning($active)
+
+	public function viewcms()
 	{
-		return 
-		'<div class="warn draft" style="'.($active ? 'display:none' : '').'">
-			<p>
-			<span style="float: left">
-			<img src="../img/admin/warn2.png" />
-			'.$this->l('Your CMS page will be saved as a draft').'
-			</span>
-			<input type="button" class="button" style="float: right;" value="'.$this->l('Save and preview').'" onclick="submitAddcmsAndPreview();">
-			<input type="hidden" name="previewSubmitAddcmsAndPreview" id="previewSubmitAddcmsAndPreview" />
-			<br class="clear" />
-			</p>
-		</div>';
+		global $cookie, $link;
+		if (($id_cms = (int)(Tools::getValue('id_cms'))) AND $cms = new CMS($id_cms, (int)($cookie->id_lang)) AND Validate::isLoadedObject($cms))
+		{
+			$redir = $link->getCMSLink($cms);
+			if (!$cms->active)
+			{
+				$admin_dir = dirname($_SERVER['PHP_SELF']);
+				$admin_dir = substr($admin_dir, strrpos($admin_dir,'/') + 1);
+				$redir .= '&adtoken='.Tools::encrypt('PreviewCMS'.$cms->id).'&ad='.$admin_dir;
+			}
+			Tools::redirectAdmin($redir);
+		}
 	}
 	
 	public function displayForm($isMainTab = true)
 	{
-		global $currentIndex, $cookie;
+		global $currentIndex, $cookie, $link;
 		parent::displayForm();
 		
 		$obj = $this->loadObject(true);
 		$iso = Language::getIsoById((int)($cookie->id_lang));
-		$divLangName = 'meta_title¤meta_description¤meta_keywords¤ccontent¤link_rewrite';
-
+		$redir = $link->getCMSLink($obj);
+		if (!$obj->active)
+		{
+			$admin_dir = dirname($_SERVER['PHP_SELF']);
+			$admin_dir = substr($admin_dir, strrpos($admin_dir,'/') + 1);
+			$redir .= '&adtoken='.Tools::encrypt('PreviewCMS'.$obj->id).'&ad='.$admin_dir;
+		}
+		$divLangName = 'meta_title¤meta_description¤meta_keywords¤ccontent¤clink_rewrite';
+		if($obj->id)
 		echo '
-		<form action="'.$currentIndex.'&submitAdd'.$this->table.'=1&token='.Tools::getAdminTokenLite('AdminCMSContent').'" method="post" name="cms" id="cms">
+		<div class="warn draft">
+			<p>
+
+			<a href="'.$redir.'" class="button" style="float: right;">'.$this->l('Preview').'</a>
+			<br class="clear" />
+			</p>
+		</div>';
+		echo '
+		<form action="'.$currentIndex.'&submitAddcms=1&token='.Tools::getAdminTokenLite('AdminCMSContent').'" method="post" name="cms" id="cms" enctype="multipart/form-data">
 			'.($obj->id ? '<input type="hidden" name="id_'.$this->table.'" value="'.$obj->id.'" />' : '').'
-			'.$this->_displayDraftWarning($obj->active).'
 			<fieldset><legend><img src="../img/admin/cms.gif" />'.$this->l('CMS page').'</legend>';
 			
 		// META TITLE
-		echo '<label>'.$this->l('CMS Category:').' </label>
-				<div class="margin-form">
-					<select name="id_cms_category">';
-		$categories = CMSCategory::getCategories((int)($cookie->id_lang), false);
-		CMSCategory::recurseCMSCategory($categories, $categories[0][1], 1, $this->getFieldValue($obj, 'id_cms_category'));
 		echo '
-					</select>
-				</div>
-				<label>'.$this->l('Meta title').' </label>
+				<label>'.$this->l('Title').' </label>
 				<div class="margin-form">';
 		foreach ($this->_languages as $language)
-			echo '	<div id="meta_title_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').'; float: left;">
-						<input size="40" type="text" onkeyup="copyMeta2friendlyURL();" id="name_'.$language['id_lang'].'" name="meta_title_'.$language['id_lang'].'" value="'.htmlentities($this->getFieldValue($obj, 'meta_title', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" /><sup> *</sup>
+			echo '	<div id="title_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').';float: left;" class="redactor">
+						<input size="40" type="text" onkeyup="copyMeta2friendlyURL();" id="name_'.$language['id_lang'].'" name="title_'.$language['id_lang'].'" value="'.htmlentities($this->getFieldValue($obj, 'title', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" /><sup> *</sup>
 					</div>';
-		
+
 		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'meta_title');
 		echo '	</div><div class="clear space">&nbsp;</div>';
-		
-		// META DESCRIPTION
-		echo '	<label>'.$this->l('Meta description').' </label>
+
+		// Description
+		echo '	<label>'.$this->l('Description').' </label>
 				<div class="margin-form">';
 		foreach ($this->_languages as $language)
-			echo '	<div id="meta_description_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').'; float: left;">
-						<input size="50" type="text" name="meta_description_'.$language['id_lang'].'" value="'.htmlentities($this->getFieldValue($obj, 'meta_description', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" />
+			echo '	<div id="cdescription_short_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').';float: left;" class="redactor">
+						<textarea class="rte" cols="20" rows="30" id="description_short_'.$language['id_lang'].'" name="description_short_'.$language['id_lang'].'">'.htmlentities(stripslashes($this->getFieldValue($obj, 'description_short', $language['id_lang'])), ENT_COMPAT, 'UTF-8').'</textarea>
 					</div>';
-		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'meta_description');
+		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'ccontent');
 		echo '	</div><div class="clear space">&nbsp;</div>';
-		
-		// META KEYWORDS
-		echo '	<label>'.$this->l('Meta keywords').' </label>
-				<div class="margin-form">';
-		foreach ($this->_languages as $language)
-			echo '	<div id="meta_keywords_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').'; float: left;">
-						<input size="50" type="text" name="meta_keywords_'.$language['id_lang'].'" value="'.htmlentities($this->getFieldValue($obj, 'meta_keywords', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" />
-					</div>';
-		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'meta_keywords');
-		echo '	</div><div class="clear space">&nbsp;</div>';
-		
-		// LINK REWRITE
-		echo '	<label>'.$this->l('Friendly URL').' </label>
-				<div class="margin-form">';
-		foreach ($this->_languages as $language)
-			echo '	<div id="link_rewrite_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').'; float: left;">
-						<input size="30" type="text" id="input_link_rewrite_'.$language['id_lang'].'" name="link_rewrite_'.$language['id_lang'].'" onkeyup="this.value = str2url(this.value); updateFriendlyURL();" value="'.htmlentities($this->getFieldValue($obj, 'link_rewrite', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" /><sup> *</sup>
-					</div>';
-		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'link_rewrite');
-		echo '	</div><div class="clear space">&nbsp;</div>';
-		
 		// CONTENT
 		echo '	<label>'.$this->l('Page content').' </label>
 				<div class="margin-form">';
 		foreach ($this->_languages as $language)
-			echo '	<div id="ccontent_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').';float: left;">
+			echo '	<div id="ccontent_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').';float: left;" class="redactor">
 						<textarea class="rte" cols="80" rows="30" id="content_'.$language['id_lang'].'" name="content_'.$language['id_lang'].'">'.htmlentities(stripslashes($this->getFieldValue($obj, 'content', $language['id_lang'])), ENT_COMPAT, 'UTF-8').'</textarea>
 					</div>';
 		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'ccontent');
@@ -152,14 +142,170 @@ class AdminCMS extends AdminTab
 					<input type="radio" name="active" id="active_off" onclick="toggleDraftWarning(true);" value="0" '.(!$this->getFieldValue($obj, 'active') ? 'checked="checked" ' : '').'/>
 					<label class="t" for="active_off"> <img src="../img/admin/disabled.gif" alt="'.$this->l('Disabled').'" title="'.$this->l('Disabled').'" /></label>
 				</div>';
+
+		echo '
+				<label>'.$this->l('Comments:').' </label>
+				<div class="margin-form">
+					<input type="radio" name="comment" id="comment_on" value="1" '.($this->getFieldValue($obj, 'comment') ? 'checked="checked" ' : '').'/>
+					<label class="t" for="comment_on"> <img src="../img/admin/enabled.gif" alt="'.$this->l('Enabled').'" title="'.$this->l('Enabled').'" /></label>
+					<input type="radio" name="comment" id="comment_off" value="0" '.(!$this->getFieldValue($obj, 'comment') ? 'checked="checked" ' : '').'/>
+					<label class="t" for="comment_off"> <img src="../img/admin/disabled.gif" alt="'.$this->l('Disabled').'" title="'.$this->l('Disabled').'" /></label>
+				</div>';
+		// Date add
+		echo '
+				<label for="date_add">'.$this->l('Publication date:').' </label>
+				<div class="margin-form">
+					<input type="text" name="date_add" id="date_add" value="'.$this->getFieldValue($obj, 'date_add').'" class="hasDatepicker" />
+				</div>';
+
+		echo '<label>'.$this->l('Image:').' </label>
+				<div class="margin-form">';
+		echo 		$this->displayImage($obj->id, _PS_IMG_DIR_.'cms/'.$obj->id.'.jpg', 350, NULL, Tools::getAdminToken('AdminCMSContent'.(int)(Tab::getIdFromClassName('AdminCMSContent')).(int)($cookie->id_employee)), true);
+		echo '	<input type="file" name="logo" />
+					<p>'.$this->l('Upload picture from your computer').'</p>
+				</div>';
+		echo '</fieldset><br /><fieldset><legend><img src="../img/admin/cms.gif" />'.$this->l('Categories').'</legend>';
+
+		echo '<label>'.$this->l('CMS Category default:').' </label>
+				<div class="margin-form">
+					<select name="id_cms_category">';
+		$categories = CMSCategory::getCategories((int)($cookie->id_lang), false);
+		CMSCategory::recurseCMSCategory($categories, $categories[0][1], 1, $this->getFieldValue($obj, 'id_cms_category'));
+		echo '
+					</select>
+				</div>';
+
+		echo '<label>'.$this->l('CMS Categories:').' </label>
+				<div class="margin-form">
+		<div style="overflow: auto; padding-top: 0.6em;" id="categoryList">
+							<table cellspacing="0" cellpadding="0" class="table">
+								<tr>
+									<th><input type="checkbox" name="checkme" class="noborder" onclick="checkDelBoxes(this.form, \'categoryBox[]\', this.checked)" /></th>
+									<th>'.$this->l('ID').'</th>
+									<th style="width: 600px">'.$this->l('Name').'</th>
+								</tr>';
+								$done = array();
+								$index = array();
+
+								$categoryBox = Tools::getValue('categoryBox');
+								if ($categoryBox != '')
+								{
+									$categoryBox = @unserialize($categoryBox);
+									foreach ($categoryBox as $k => $row)
+										$index[] = $row;
+								}
+								elseif ($obj->id)
+									$index = CMS::getIndexedCategories($obj->id);
+								$this->recurseCategoryForInclude($obj->id, $index, $categories, $categories[0][1], 1, (Tools::getValue('id_cms_category')?(int)(Tools::getValue('id_cms_category')):$obj->id_cms_category));
+		echo '				</table>
+							<p style="padding:0px; margin:0px 0px 10px 0px;">'.$this->l('Mark all checkbox(es) of categories in which cms is to appear').'<sup> *</sup></p>
+						</div></div>';
+
+		echo '</fieldset><br /><fieldset><legend><img src="../img/admin/cms.gif" />'.$this->l('Products').'</legend>';
+
+		$accessories = (Tools::getValue('id_cms') ? $obj->getProductsLite((int)$cookie->id_lang) : array());
+
+		echo '<div id="divAccessories">';
+		foreach ($accessories as $accessory)
+			echo $accessory['name'].(!empty($accessory['reference']) ? ' ('.$accessory['reference'].')' : '').' <span onclick="delAccessoryProduct('.$accessory['id_product'].');" style="cursor: pointer;"><img src="../img/admin/delete.gif" class="middle" alt="" /></span><br />';
+		echo '</div>';
+
+		echo '<div class="margin-form">
+
+			<input type="hidden" name="inputAccessories" id="inputAccessories" value=" ';
+		foreach ($accessories as $accessory) echo $accessory['id_product'].'-';
+		echo '" />
+
+			<input type="hidden" name="nameAccessories" id="nameAccessories" value=" ';
+		foreach ($accessories as $accessory) echo $accessory['name'].'¤';
+		echo '" />';
+
+		echo '<script type="text/javascript">
+					var formProduct;
+					var accessories = new Array();
+				</script>
+
+			<link rel="stylesheet" type="text/css" href="'.__PS_BASE_URI__.'css/jquery.autocomplete.css" />
+			<script type="text/javascript" src="'.__PS_BASE_URI__.'js/jquery/jquery.autocomplete.js"></script>
+			<script type="text/javascript" src="'.__PS_BASE_URI__.'js/admin-cms.js"></script>';
+
+		echo '<div id="ajax_choose_product" style="padding:6px; padding-top:2px; width:600px;">
+							<p class="clear">'.$this->l('Begin typing the first letters of the product name, then select the product from the drop-down list:').'</p>
+							<input type="text" value="" id="product_autocomplete_input" />
+							<img onclick="$(this).prev().search();" style="cursor: pointer;" src="../img/admin/add.gif" alt="'.$this->l('Add an accessory').'" title="'.$this->l('Add an accessory').'" />
+						</div>
+						<script type="text/javascript">
+							urlToCall = null;
+							/* function autocomplete */
+							$(function() {
+								$(\'#product_autocomplete_input\')
+									.autocomplete(\'ajax_products_list.php\', {
+										minChars: 1,
+										autoFill: true,
+										max:20,
+										matchContains: true,
+										mustMatch:true,
+										scroll:false,
+										cacheLength:0,
+										formatItem: function(item){ return item[1]+\' - \'+item[0]; }
+									}).result(addAccessoryProduct);
+								$(\'#product_autocomplete_input\').setOptions({
+									extraParams: {excludeIds : $(\'#inputAccessories\').val().replace(/\-/g,\',\').replace(/\,$/,\'\')}
+								});
+							});
+						</script>';
+		echo '	</div>';
+
+
+		 echo '</fieldset><br /><fieldset><legend><img src="../img/admin/cms.gif" />'.$this->l('SEO').'</legend>';
+
+		// META TITLE
+		echo '	<label>'.$this->l('Meta title').' </label>
+				<div class="margin-form">';
+		foreach ($this->_languages as $language)
+			echo '	<div id="meta_title_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').';float: left;" class="redactor">
+						<input size="50" type="text" name="meta_title_'.$language['id_lang'].'" value="'.htmlentities($this->getFieldValue($obj, 'meta_title', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" />
+					</div>';
+		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'meta_description');
+		echo '	</div><div class="clear space">&nbsp;</div>';
+
+		// META DESCRIPTION
+		echo '	<label>'.$this->l('Meta description').' </label>
+				<div class="margin-form">';
+		foreach ($this->_languages as $language)
+			echo '	<div id="meta_description_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').';float: left;" class="redactor">
+						<input size="50" type="text" name="meta_description_'.$language['id_lang'].'" value="'.htmlentities($this->getFieldValue($obj, 'meta_description', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" />
+					</div>';
+		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'meta_description');
+		echo '	</div><div class="clear space">&nbsp;</div>';
+
+		// META KEYWORDS
+		echo '	<label>'.$this->l('Meta keywords').' </label>
+				<div class="margin-form">';
+		foreach ($this->_languages as $language)
+			echo '	<div id="meta_keywords_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').';float: left;" class="redactor">
+						<input size="50" type="text" name="meta_keywords_'.$language['id_lang'].'" value="'.htmlentities($this->getFieldValue($obj, 'meta_keywords', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" />
+					</div>';
+		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'meta_keywords');
+		echo '	</div><div class="clear space">&nbsp;</div>';
+
+		// LINK REWRITE
+		echo '	<label>'.$this->l('Friendly URL').' </label>
+				<div class="margin-form">';
+		foreach ($this->_languages as $language)
+			echo '	<div id="clink_rewrite_'.$language['id_lang'].'" style="display: '.($language['id_lang'] == $this->_defaultFormLanguage ? 'block' : 'none').';float: left;" class="redactor">
+						<input size="30" type="text"  id="input_link_rewrite_'.$language['id_lang'].'" name="link_rewrite_'.$language['id_lang'].'" onkeyup="this.value = str2url(this.value); updateFriendlyURL();" value="'.htmlentities($this->getFieldValue($obj, 'link_rewrite', (int)($language['id_lang'])), ENT_COMPAT, 'UTF-8').'" /><sup> *</sup>
+					</div>';
+		$this->displayFlags($this->_languages, $this->_defaultFormLanguage, $divLangName, 'clink_rewrite');
+		echo '	</div><div class="clear space">&nbsp;</div></fieldset>';
 		
 		// SUBMIT
 		echo '	<div class="margin-form space">
 					<input type="submit" value="'.$this->l('   Save   ').'" name="submitAdd'.$this->table.'" class="button" />
+					<input type="submit" value="'.$this->l('   Save and Stay  ').'" name="submitAdd'.$this->table.'AndStay" class="button" />
 				</div>
 				<div class="small"><sup>*</sup> '.$this->l('Required field').'</div>
-			</fieldset><br />
-			'.$this->_displayDraftWarning($obj->active).'
+			<br />
 		</form>';
 		// TinyMCE
 		global $cookie;
@@ -174,6 +320,8 @@ class AdminCMS extends AdminTab
 			</script>
 			<script type="text/javascript" src="'.__PS_BASE_URI__.'js/tiny_mce/tiny_mce.js"></script>
 			<script type="text/javascript" src="'.__PS_BASE_URI__.'js/tinymce.inc.js"></script>';
+		include_once('functions.php');
+		includeDatepicker(array('date_add'), true);
 	}
 	
 	public function display($token = NULL)
@@ -210,122 +358,73 @@ class AdminCMS extends AdminTab
 		$this->displayListFooter($token);
 	}
 
-	function postProcess()
+	/**
+	 * Build a categories tree
+	 *
+	 * @param array $indexedCategories Array with categories where product is indexed (in order to check checkbox)
+	 * @param array $categories Categories to list
+	 * @param array $current Current category
+	 * @param integer $id_category Current category id
+	 */
+	public static function recurseCategoryForInclude($id_obj, $indexedCategories, $categories, $current, $id_category = 1, $id_category_default = NULL, $has_suite = array())
 	{
-		global $cookie, $link, $currentIndex;
-		
-		if (Tools::isSubmit('viewcms') AND ($id_cms = (int)(Tools::getValue('id_cms'))) AND $cms = new CMS($id_cms, (int)($cookie->id_lang)) AND Validate::isLoadedObject($cms))
-		{
-			$redir = $link->getCMSLink($cms);
-			if (!$cms->active)
-			{
-				$admin_dir = dirname($_SERVER['PHP_SELF']);
-				$admin_dir = substr($admin_dir, strrpos($admin_dir,'/') + 1);
-				$redir .= '&adtoken='.Tools::encrypt('PreviewCMS'.$cms->id).'&ad='.$admin_dir;
-			}
-			Tools::redirectAdmin($redir);
-		}
-		elseif (Tools::isSubmit('deletecms'))
-		{
-			if (Tools::getValue('id_cms') == Configuration::get('PS_CONDITIONS_CMS_ID'))
-			{
-				Configuration::updateValue('PS_CONDITIONS', 0);
-				Configuration::updateValue('PS_CONDITIONS_CMS_ID', 0);
-			}
-			$cms = new CMS((int)(Tools::getValue('id_cms')));
-			$cms->cleanPositions($cms->id_cms_category);
-			if (!$cms->delete())
-				$this->_errors[] = Tools::displayError('An error occurred while deleting object.').' <b>'.$this->table.' ('.mysql_error().')</b>';
-			else
-				Tools::redirectAdmin($currentIndex.'&id_cms_category='.$cms->id_cms_category.'&conf=1&token='.Tools::getAdminTokenLite('AdminCMSContent'));
-		}/* Delete multiple objects */
-		elseif (Tools::getValue('submitDel'.$this->table))
-		{
-			if ($this->tabAccess['delete'] === '1')
-			{
-				if (isset($_POST[$this->table.'Box']))
-				{
-					$cms = new CMS();
-					$result = true;
-					$result = $cms->deleteSelection(Tools::getValue($this->table.'Box'));
-					if ($result)
-					{
-						$cms->cleanPositions((int)(Tools::getValue('id_cms_category')));
-						Tools::redirectAdmin($currentIndex.'&conf=2&token='.Tools::getAdminTokenLite('AdminCMSContent').'&id_category='.(int)(Tools::getValue('id_cms_category')));
-					}
-					$this->_errors[] = Tools::displayError('An error occurred while deleting selection.');
+		global $done;
+		static $irow;
 
-				}
-				else
-					$this->_errors[] = Tools::displayError('You must select at least one element to delete.');
-			}
-			else
-				$this->_errors[] = Tools::displayError('You do not have permission to delete here.');
-		}
-		elseif (Tools::isSubmit('submitAddcms') OR Tools::isSubmit('submitAddcmsAndPreview'))
-		{
-			parent::validateRules();
+		if (!isset($done[$current['infos']['id_parent']]))
+			$done[$current['infos']['id_parent']] = 0;
+		$done[$current['infos']['id_parent']] += 1;
 
-			if (!sizeof($this->_errors))
-			{
-				$cms = new CMS();
-				$this->copyFromPost($cms, 'cms');
-				$cms->id = (int)Tools::getValue('id_cms');
+		$todo = sizeof($categories[$current['infos']['id_parent']]);
+		$doneC = $done[$current['infos']['id_parent']];
 
-				if (!$cms->id && !$cms->add())
-					$this->_errors[] = Tools::displayError('An error occurred while creating object.').' <b>'.$this->table.' ('.mysql_error().')</b>';
-				elseif (!$cms->update())
-					$this->_errors[] = Tools::displayError('An error occurred while updating object.').' <b>'.$this->table.' ('.mysql_error().')</b>';
-				
-				if (!count($this->_errors))
-				{
-					if (Tools::isSubmit('submitAddcmsAndPreview'))
-					{
-						$preview_url = $link->getCMSLink($cms, $this->getFieldValue($cms, 'link_rewrite', $this->_defaultFormLanguage), (int)($cookie->id_lang));
-						if (!$cms->active)
-						{
-							$admin_dir = dirname($_SERVER['PHP_SELF']);
-							$admin_dir = substr($admin_dir, strrpos($admin_dir,'/') + 1);
-							$preview_url .= '&adtoken='.Tools::encrypt('PreviewCMS'.(int)$cms->id).'&ad='.$admin_dir;
-						}
-						Tools::redirectAdmin($preview_url);
-					}
-					else
-						Tools::redirectAdmin($currentIndex.'&id_cms_category='.(int)$cms->id_cms_category.'&conf='.(int)($cms->id ? 3 : 4).'&token='.Tools::getAdminTokenLite('AdminCMSContent'));
-				}
-			}
-		}
-		elseif (Tools::getValue('position'))
+		$level = $current['infos']['level_depth'] + 1;
+
+		echo '
+		<tr class="'.($irow++ % 2 ? 'alt_row' : '').'">
+			<td>
+				<input type="checkbox" name="categoryBox[]" class="categoryBox'.($id_category_default == $id_category ? ' id_category_default' : '').'" id="categoryBox_'.$id_category.'" value="'.$id_category.'"'.((in_array($id_category, $indexedCategories) OR ((int)(Tools::getValue('id_cms_category')) == $id_category AND !(int)($id_obj)
+		)) ? ' checked="checked"' : '').' />
+			</td>
+			<td>
+				'.$id_category.'
+			</td>
+			<td>';
+		for ($i = 2; $i < $level; $i++)
+			echo '<img src="../img/admin/lvl_'.$has_suite[$i - 2].'.gif" alt="" />';
+		echo '<img src="../img/admin/'.($level == 1 ? 'lv1.gif' : 'lv2_'.($todo == $doneC ? 'f' : 'b').'.gif').'" alt="" /> &nbsp;
+			<label for="categoryBox_'.$id_category.'" class="t">'.stripslashes($current['infos']['name']).'</label></td>
+		</tr>';
+
+		if ($level > 1)
+			$has_suite[] = ($todo == $doneC ? 0 : 1);
+		if (isset($categories[$id_category]))
+			foreach ($categories[$id_category] AS $key => $row)
+				if ($key != 'infos')
+					self::recurseCategoryForInclude($id_obj, $indexedCategories, $categories, $categories[$id_category][$key], $key, $id_category_default, $has_suite);
+	}
+
+	function afterUpdate($object)
+	{
+		$object->cleanProducts();
+		if ($accessories = Tools::getValue('inputAccessories'))
 		{
-			if ($this->tabAccess['edit'] !== '1')
-				$this->_errors[] = Tools::displayError('You do not have permission to edit here.');
-			elseif (!Validate::isLoadedObject($object = $this->loadObject()))
-				$this->_errors[] = Tools::displayError('An error occurred while updating status for object.').' <b>'.$this->table.'</b> '.Tools::displayError('(cannot load object)');
-			elseif (!$object->updatePosition((int)(Tools::getValue('way')), (int)(Tools::getValue('position'))))
-				$this->_errors[] = Tools::displayError('Failed to update the position.');
-			else
-				Tools::redirectAdmin($currentIndex.'&'.$this->table.'Orderby=position&'.$this->table.'Orderway=asc&conf=4'.(($id_category = (int)(Tools::getValue('id_cms_category'))) ? ('&id_cms_category='.$id_category) : '').'&token='.Tools::getAdminTokenLite('AdminCMSContent'));
-		}
-		/* Change object statuts (active, inactive) */
-		elseif (Tools::isSubmit('status') AND Tools::isSubmit($this->identifier))
-		{
-			if ($this->tabAccess['edit'] === '1')
+			$accessories_id = array_unique(explode('-', $accessories));
+			if (sizeof($accessories_id))
 			{
-				if (Validate::isLoadedObject($object = $this->loadObject()))
-				{
-					if ($object->toggleStatus())
-						Tools::redirectAdmin($currentIndex.'&conf=5'.((int)Tools::getValue('id_cms_category') ? '&id_cms_category='.(int)Tools::getValue('id_cms_category') : '').'&token='.Tools::getValue('token'));
-					else
-						$this->_errors[] = Tools::displayError('An error occurred while updating status.');
-				}
-				else
-					$this->_errors[] = Tools::displayError('An error occurred while updating status for object.').' <b>'.$this->table.'</b> '.Tools::displayError('(cannot load object)');
+				array_pop($accessories_id);
+				$object->addProducts($accessories_id);
 			}
-			else
-				$this->_errors[] = Tools::displayError('You do not have permission to edit here.');
 		}
-		else
-			parent::postProcess(true);
+		$categoryBox = Tools::getValue('categoryBox');
+		$object->cleanCategories();
+		if (is_array($categoryBox) AND sizeof($categoryBox) > 0)
+			$object->addCategories($categoryBox);
+	}
+
+	function afterAdd($object)
+	{
+		$this->afterUpdate($object);
 	}
 }
 

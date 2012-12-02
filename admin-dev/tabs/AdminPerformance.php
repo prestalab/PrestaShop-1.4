@@ -42,6 +42,7 @@ class AdminPerformance extends AdminTab
 		{
 			if ($this->tabAccess['edit'] === '1')
 			{
+				Configuration::updateValue('PL_SMARTY_CACHE_REPLACE', Tools::getValue('smarty_cache_replace', 0));
 				$settings = file_get_contents(dirname(__FILE__).'/../../config/settings.inc.php');
 				if (!Tools::getValue('active'))
 					$cache_active = 0;
@@ -456,6 +457,12 @@ class AdminPerformance extends AdminTab
 						<input type="radio" name="active" id="active_off" value="0" '.(!_PS_CACHE_ENABLED_ ? 'checked="checked" ' : '').'/>
 						<label class="t" for="active_off"> <img src="../img/admin/disabled.gif" alt="'.$this->l('Disabled').'" title="'.$this->l('Disabled').'" /></label>
 						<p>'.$this->l('Enable or disable caching system').'</p>
+					</div>
+					<label>'.$this->l('Cache for smarty:').' </label>
+					<div class="margin-form">
+						<input type="radio" name="smarty_cache_replace" id="smarty_cache_replace_1" value="1" '.(Configuration::get('PL_SMARTY_CACHE_REPLACE') ? 'checked="checked"' : '').' /> <label class="t"><img src="../img/admin/enabled.gif" alt="" /> '.$this->l('Yes').'</label>
+						<input type="radio" name="smarty_cache_replace" id="smarty_cache_replace_0" value="0" '.(!Configuration::get('PL_SMARTY_CACHE_REPLACE') ? 'checked="checked"' : '').' /> <label class="t"><img src="../img/admin/disabled.gif" alt="" /> '.$this->l('No').'</label>
+						<p>'.$this->l('Selected caching system will be used instead default smarty caching.').'</p>
 					</div>
 					<label>'.$this->l('Caching system:').' </label>
 					<div class="margin-form">

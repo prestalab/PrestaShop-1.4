@@ -1730,7 +1730,7 @@ class ToolsCore
 
 		// rebuild the original js_files array
 		$url = str_replace(_PS_ROOT_DIR_.'/', __PS_BASE_URI__, $compressed_js_path);
-		$js_files = array_merge(array($protocolLink.self::getMediaServer($url).$url), $js_external_files);
+		$js_files = array_merge($js_external_files, array($protocolLink.self::getMediaServer($url).$url));
 
 	}
 

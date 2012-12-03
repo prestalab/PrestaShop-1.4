@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -608,11 +607,15 @@ class LanguageCore extends ObjectModel
 	  */
 	public static function loadLanguages()
 	{
-		self::$_LANGUAGES = array();
-		$db = Db::getInstance();
-		$result = $db->ExecuteS('SELECT * FROM `'._DB_PREFIX_.'lang`', false);
-		while ($row = $db->nextRow($result))
-			self::$_LANGUAGES[(int)$row['id_lang']] = $row;
+		self::$_LANGUAGES = Cache::getInstance()->get(md5('_LANGUAGES'));
+		if(!self::$_LANGUAGES)
+		{
+			$db = Db::getInstance();
+			$result = $db->ExecuteS('SELECT * FROM `'._DB_PREFIX_.'lang`', false);
+			while ($row = $db->nextRow($result))
+				self::$_LANGUAGES[(int)$row['id_lang']] = $row;
+			Cache::getInstance()->set(md5('_LANGUAGES'), self::$_LANGUAGES);
+		}
 	}
 
 	public function update($nullValues = false)

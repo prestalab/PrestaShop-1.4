@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -61,11 +60,22 @@ class BlockCurrencies extends Module
 			return ;
 	
 		global $smarty;
-		$currencies = Currency::getCurrencies();
-		if (!sizeof($currencies))
-			return '';
-		$smarty->assign('currencies', $currencies);
-		return $this->display(__FILE__, 'blockcurrencies.tpl');
+		$id_lang = (int)($params['cookie']->id_lang);
+		$id_currency = (int)($params['cookie']->id_currency);
+		$smartyCacheId = 'blockcurrencies|'.$id_lang.'-'.$id_currency;
+
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 24 Hours
+		Tools::enableCache();
+		if (!$this->isCached('blockcurrencies.tpl', $smartyCacheId))
+		{
+			$currencies = Currency::getCurrencies();
+			if (!sizeof($currencies))
+				return '';
+			$smarty->assign('currencies', $currencies);
+		}
+		$display = $this->display(__FILE__, 'blockcurrencies.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 	
 	public function hookHeader($params)

@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -129,7 +128,7 @@ class SpecificPriceCore extends ObjectModel
 				AND
 				(`to` = \'0000-00-00 00:00:00\' OR NOW() <= `to`)
 			)
-			ORDER BY `from_quantity` DESC, `score` DESC');
+			ORDER BY `from_quantity` DESC, `score` DESC', false);
 		}
 		return self::$_specificPriceCache[$key];
 	}

@@ -49,4 +49,13 @@
 		</isos>
 		<idLangPS>it</idLangPS>
 	</lang>
+	<lang id="5" label="Русский (Russian)" trad_file="/../langs/ru.php" >
+		<flags>
+			<url>../img/l/6.jpg</url>
+		</flags>
+		<isos>
+			<iso>ru</iso>
+		</isos>
+		<idLangPS>ru</idLangPS>
+	</lang>
 </languages>

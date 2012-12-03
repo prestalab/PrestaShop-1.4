@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -48,7 +47,7 @@ class AdminCategories extends AdminTab
 		$this->fieldsDisplay = array(
 		'id_category' => array('title' => $this->l('ID'), 'align' => 'center', 'width' => 30),
 		'name' => array('title' => $this->l('Name'), 'width' => 100),
-		'description' => array('title' => $this->l('Description'), 'width' => 500, 'maxlength' => 90, 'orderby' => false),
+		'description' => array('title' => $this->l('Description'), 'width' => 500, 'maxlength' => 90, 'orderby' => false, 'html' => true),
 		'position' => array('title' => $this->l('Position'), 'width' => 40,'filter_key' => 'position', 'align' => 'center', 'position' => 'position'),
 		'active' => array('title' => $this->l('Displayed'), 'active' => 'status', 'align' => 'center', 'type' => 'bool', 'orderby' => false));
 		
@@ -320,5 +319,18 @@ class AdminCategories extends AdminTab
 			</fieldset>
 		</form>
 		<p class="clear"></p>';
+		// TinyMCE
+		global $cookie;
+		$iso = Language::getIsoById((int)($cookie->id_lang));
+		$isoTinyMCE = (file_exists(_PS_ROOT_DIR_.'/js/tiny_mce/langs/'.$iso.'.js') ? $iso : 'en');
+		$ad = dirname($_SERVER["PHP_SELF"]);
+		echo '
+			<script type="text/javascript">
+			var iso = \''.$isoTinyMCE.'\' ;
+			var pathCSS = \''._THEME_CSS_DIR_.'\' ;
+			var ad = \''.$ad.'\' ;
+			</script>
+			<script type="text/javascript" src="'.__PS_BASE_URI__.'js/tiny_mce/tiny_mce.js"></script>
+			<script type="text/javascript" src="'.__PS_BASE_URI__.'js/tinymce.inc.js"></script>';
 	}
 }

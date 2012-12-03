@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -134,7 +133,7 @@ abstract class ObjectModelCore
 			{
 				$this->id = (int)$id;
 				foreach ($result as $key => $value)
-					if (key_exists($key, $this))
+					if (array_key_exists($key, $this))
 						$this->{$key} = $value;
 
 				/* Join multilingual tables */
@@ -148,7 +147,7 @@ abstract class ObjectModelCore
 					if ($result)
 						foreach ($result as $row)
 							foreach ($row as $key => $value)
-								if (key_exists($key, $this) && $key != $this->identifier)
+								if (array_key_exists($key, $this) && $key != $this->identifier)
 								{
 									if (!is_array($this->{$key}))
 										$this->{$key} = array();
@@ -237,7 +236,6 @@ abstract class ObjectModelCore
 		/* Automatically fill dates */
 		if (property_exists($this, 'date_upd'))
 			$this->date_upd = date('Y-m-d H:i:s');
-
 		/* Database update */
 		if ($nullValues)
 			$result = Db::getInstance()->autoExecuteWithNullValues(_DB_PREFIX_.$this->table, $this->getFields(), 'UPDATE', '`'.pSQL($this->identifier).'` = '.(int)$this->id);

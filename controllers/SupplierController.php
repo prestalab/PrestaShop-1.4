@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -74,38 +73,46 @@ class SupplierControllerCore extends FrontController
 	
 	public function process()
 	{
-		if (Validate::isLoadedObject($this->supplier) AND $this->supplier->active)
+		$id_lang = (int)(self::$cookie->id_lang);
+		$id_currency = (int)(self::$cookie->id_currency);
+		$this->smartyCacheId = 'id_supplier_'.Tools::getValue('id_supplier').'|SupplierController|'.$id_lang.'-'.$id_currency.'-'.Tools::getValue('orderby').'-'.Tools::getValue('orderway').'-'.Tools::getValue('p');
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST'); // 24 Hours
+		Tools::enableCache();
+		if(!self::$smarty->isCached(_PS_THEME_DIR_.($this->supplier?'supplier.tpl':'supplier-list.tpl'), $this->smartyCacheId))
 		{
-			$nbProducts = $this->supplier->getProducts($this->supplier->id, NULL, NULL, NULL, $this->orderBy, $this->orderWay, true);
-			$this->pagination((int)$nbProducts);
-			self::$smarty->assign(array(
-				'nb_products' => $nbProducts,
-				'products' => $this->supplier->getProducts($this->supplier->id, (int)self::$cookie->id_lang, (int)$this->p, (int)$this->n, $this->orderBy, $this->orderWay),
-				'path' => ($this->supplier->active ? Tools::safeOutput($this->supplier->name) : ''),
-				'supplier' => $this->supplier));
-		}
-		elseif (!Tools::getValue('id_supplier'))
-		{
-			if (Configuration::get('PS_DISPLAY_SUPPLIERS'))
+			if (Validate::isLoadedObject($this->supplier) AND $this->supplier->active)
 			{
-				$result = Supplier::getSuppliers(true, (int)self::$cookie->id_lang, true);
-				$nbProducts = count($result);
-				$this->pagination($nbProducts);
-				
-				$suppliers = Supplier::getSuppliers(true, (int)self::$cookie->id_lang, true, $this->p, $this->n);
-				foreach ($suppliers AS &$row)
-					$row['image'] = (!file_exists(_PS_SUPP_IMG_DIR_.'/'.$row['id_supplier'].'-medium.jpg')) ? Language::getIsoById((int)self::$cookie->id_lang).'-default' : $row['id_supplier'];
-				
+				$nbProducts = $this->supplier->getProducts($this->supplier->id, NULL, NULL, NULL, $this->orderBy, $this->orderWay, true);
+				$this->pagination((int)$nbProducts);
 				self::$smarty->assign(array(
-					'pages_nb' => ceil($nbProducts / (int)$this->n),
-					'nbSuppliers' => $nbProducts,
-					'mediumSize' => Image::getSize('medium'),
-					'suppliers' => $suppliers,
-					'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
-				));
+					'nb_products' => $nbProducts,
+					'products' => $this->supplier->getProducts($this->supplier->id, (int)self::$cookie->id_lang, (int)$this->p, (int)$this->n, $this->orderBy, $this->orderWay),
+					'path' => ($this->supplier->active ? Tools::safeOutput($this->supplier->name) : ''),
+					'supplier' => $this->supplier));
 			}
-			else
-				self::$smarty->assign('nbSuppliers', 0);
+			elseif (!Tools::getValue('id_supplier'))
+			{
+				if (Configuration::get('PS_DISPLAY_SUPPLIERS'))
+				{
+					$result = Supplier::getSuppliers(true, (int)self::$cookie->id_lang, true);
+					$nbProducts = count($result);
+					$this->pagination($nbProducts);
+
+					$suppliers = Supplier::getSuppliers(true, (int)self::$cookie->id_lang, true, $this->p, $this->n);
+					foreach ($suppliers AS &$row)
+						$row['image'] = (!file_exists(_PS_SUPP_IMG_DIR_.'/'.$row['id_supplier'].'-medium.jpg')) ? Language::getIsoById((int)self::$cookie->id_lang).'-default' : $row['id_supplier'];
+
+					self::$smarty->assign(array(
+						'pages_nb' => ceil($nbProducts / (int)$this->n),
+						'nbSuppliers' => $nbProducts,
+						'mediumSize' => Image::getSize('medium'),
+						'suppliers' => $suppliers,
+						'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
+					));
+				}
+				else
+					self::$smarty->assign('nbSuppliers', 0);
+			}
 		}
 	}
 	
@@ -119,9 +126,10 @@ class SupplierControllerCore extends FrontController
 	{
 		parent::displayContent();
 		if ($this->supplier)
-			self::$smarty->display(_PS_THEME_DIR_.'supplier.tpl');
+			self::$smarty->display(_PS_THEME_DIR_.'supplier.tpl', $this->smartyCacheId);
 		else
-			self::$smarty->display(_PS_THEME_DIR_.'supplier-list.tpl');
+			self::$smarty->display(_PS_THEME_DIR_.'supplier-list.tpl', $this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 	
 }

@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -38,23 +37,31 @@ class PricesDropControllerCore extends FrontController
 	public function process()
 	{
 		parent::process();
-		
-		$this->productSort();
-		$nbProducts = Product::getPricesDrop((int)(self::$cookie->id_lang), NULL, NULL, true);
-		$this->pagination($nbProducts);
-		
-		self::$smarty->assign(array(
-			'products' => Product::getPricesDrop((int)(self::$cookie->id_lang), (int)($this->p) - 1, (int)($this->n), false, $this->orderBy, $this->orderWay),
-			'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
-			'nbProducts' => $nbProducts,
-			'homeSize' => Image::getSize('home')
-		));
+		$id_lang = (int)(self::$cookie->id_lang);
+		$id_currency = (int)(self::$cookie->id_currency);
+		$this->smartyCacheId = 'PricesDropController|'.$id_lang.'-'.$id_currency.'-'.Tools::getValue('orderby').'-'.Tools::getValue('orderway').'-'.Tools::getValue('p');
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST'); // 24 Hours
+		Tools::enableCache();
+		if(!self::$smarty->isCached(_PS_THEME_DIR_.'prices-drop.tpl', $this->smartyCacheId))
+		{
+			$this->productSort();
+			$nbProducts = Product::getPricesDrop((int)(self::$cookie->id_lang), NULL, NULL, true);
+			$this->pagination($nbProducts);
+
+			self::$smarty->assign(array(
+				'products' => Product::getPricesDrop((int)(self::$cookie->id_lang), (int)($this->p) - 1, (int)($this->n), false, $this->orderBy, $this->orderWay),
+				'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
+				'nbProducts' => $nbProducts,
+				'homeSize' => Image::getSize('home')
+			));
+		}
 	}
 	
 	public function displayContent()
 	{
 		parent::displayContent();
-		self::$smarty->display(_PS_THEME_DIR_.'prices-drop.tpl');
+		self::$smarty->display(_PS_THEME_DIR_.'prices-drop.tpl', $this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 }
 

@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -152,25 +151,13 @@ class BlockCategories extends Module
 					 'children' => $children);
 	}
 
-	public function hookLeftColumn($params)
+	public function getTreeAll($groups, $id_lang)
 	{
-		global $smarty, $cookie;
+		if($data=Cache::getInstance()->get(md5('categoriesTree')))
+			return $data;
 
-		$id_customer = (int)($params['cookie']->id_customer);
-		// Get all groups for this customer and concatenate them as a string: "1,2,3..."
-		// It is necessary to keep the group query separate from the main select query because it is used for the cache
-		$groups = $id_customer ? implode(', ', Customer::getGroupsStatic($id_customer)) : _PS_DEFAULT_CUSTOMER_GROUP_;
-		$id_product = (int)(Tools::getValue('id_product', 0));
-		$id_category = (int)(Tools::getValue('id_category', 0));
-		$id_lang = (int)($params['cookie']->id_lang);
-		$smartyCacheId = 'blockcategories|'.$groups.'_'.$id_lang.'_'.$id_product.'_'.$id_category;
-
-		$smarty->cache_lifetime = 31536000; // 1 Year
-		Tools::enableCache();
-		if (!$this->isCached('blockcategories.tpl', $smartyCacheId))
-		{
-			$maxdepth = Configuration::get('BLOCK_CATEG_MAX_DEPTH');
-			if (!$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
+		$maxdepth = Configuration::get('BLOCK_CATEG_MAX_DEPTH');
+		if (!$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
 				SELECT c.id_parent, c.id_category, cl.name, cl.description, cl.link_rewrite
 				FROM `'._DB_PREFIX_.'category` c
 				LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON (c.`id_category` = cl.`id_category` AND `id_lang` = '.$id_lang.')
@@ -180,38 +167,62 @@ class BlockCategories extends Module
 				AND cg.`id_group` IN ('.pSQL($groups).')
 				GROUP BY id_category
 				ORDER BY `level_depth` ASC, '.(Configuration::get('BLOCK_CATEG_SORT') ? 'cl.`name`' : 'c.`position`').' '.(Configuration::get('BLOCK_CATEG_SORT_WAY') ? 'DESC' : 'ASC'))
-			)
-				return;
-				
-			$resultParents = array();
-			$resultIds = array();
+		)
+			return;
 
-			foreach ($result as &$row)
+		$resultParents = array();
+		$resultIds = array();
+
+		foreach ($result as &$row)
+		{
+			$resultParents[$row['id_parent']][] = &$row;
+			$resultIds[$row['id_category']] = &$row;
+		}
+
+		$blockCategTree = $this->getTree($resultParents, $resultIds, Configuration::get('BLOCK_CATEG_MAX_DEPTH'));
+		unset($resultParents);
+		unset($resultIds);
+
+		$data['blockCategTree']=$blockCategTree;
+		$data['result']=$result;
+
+		Cache::getInstance()->set(md5('categoriesTree'), $data);
+		return $data;
+	}
+
+	public function hookLeftColumn($params)
+	{
+		global $smarty, $cookie;
+
+		$id_customer = (int)($params['cookie']->id_customer);
+		// Get all groups for this customer and concatenate them as a string: "1,2,3..."
+		// It is necessary to keep the group query separate from the main select query because it is used for the cache
+		$groups = $id_customer ? implode(', ', Customer::getGroupsStatic($id_customer)) : _PS_DEFAULT_CUSTOMER_GROUP_;
+		if ($id_category = (int)(Tools::getValue('id_category')))
+		{
+			$cookie->last_visited_category = $id_category;
+		}
+		elseif ($id_product = (int)(Tools::getValue('id_product')))
+		{
+			if (!isset($cookie->last_visited_category) OR !Product::idIsOnCategoryId($id_product, array('0' => array('id_category' => $cookie->last_visited_category))))
 			{
-				$resultParents[$row['id_parent']][] = &$row;
-				$resultIds[$row['id_category']] = &$row;
+				$product = new Product($id_product);
+				if (isset($product) AND Validate::isLoadedObject($product))
+					$cookie->last_visited_category = (int)($product->id_category_default);
 			}
+		}
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockcategories|categories|'.$groups.'_'.$id_lang.'_'.(int)($cookie->last_visited_category);
 
-			$blockCategTree = $this->getTree($resultParents, $resultIds, Configuration::get('BLOCK_CATEG_MAX_DEPTH'));
-			unset($resultParents);
-			unset($resultIds);
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blockcategories.tpl', $smartyCacheId))
+		{
+			$data=self::getTreeAll($groups, $id_lang);
+			$blockCategTree=$data['blockCategTree'];
 			$isDhtml = (Configuration::get('BLOCK_CATEG_DHTML') == 1 ? true : false);
 
-			if (Tools::isSubmit('id_category'))
-			{
-				$cookie->last_visited_category = $id_category;
-				$smarty->assign('currentCategoryId', $cookie->last_visited_category);
-			}
-			if (Tools::isSubmit('id_product'))
-			{
-				if (!isset($cookie->last_visited_category) OR !Product::idIsOnCategoryId($id_product, array('0' => array('id_category' => $cookie->last_visited_category))))
-				{
-					$product = new Product($id_product);
-					if (isset($product) AND Validate::isLoadedObject($product))
-						$cookie->last_visited_category = (int)($product->id_category_default);
-				}
-				$smarty->assign('currentCategoryId', (int)($cookie->last_visited_category));
-			}
+			$smarty->assign('currentCategoryId', (int)($cookie->last_visited_category));
 			$smarty->assign('blockCategTree', $blockCategTree);
 
 			if (file_exists(_PS_THEME_DIR_.'modules/blockcategories/blockcategories.tpl'))
@@ -232,36 +243,29 @@ class BlockCategories extends Module
 		$id_customer = (int)($params['cookie']->id_customer);
 		// Get all groups for this customer and concatenate them as a string: "1,2,3..."
 		$groups = $id_customer ? implode(', ', Customer::getGroupsStatic($id_customer)) : _PS_DEFAULT_CUSTOMER_GROUP_;
-		$id_product = (int)(Tools::getValue('id_product', 0));
-		$id_category = (int)(Tools::getValue('id_category', 0));
+		if ($id_category = (int)(Tools::getValue('id_category')))
+		{
+			$cookie->last_visited_category = $id_category;
+		}
+		elseif ($id_product = (int)(Tools::getValue('id_product')))
+		{
+			if (!isset($cookie->last_visited_category) OR !Product::idIsOnCategoryId($id_product, array('0' => array('id_category' => $cookie->last_visited_category))))
+			{
+				$product = new Product($id_product);
+				if (isset($product) AND Validate::isLoadedObject($product))
+					$cookie->last_visited_category = (int)($product->id_category_default);
+			}
+		}
 		$id_lang = (int)($params['cookie']->id_lang);
-		$smartyCacheId = 'blockcategories|'.$groups.'_'.$id_lang.'_'.$id_product.'_'.$id_category;
+		$smartyCacheId = 'blockcategories|categories|'.$groups.'_'.$id_lang.'_'.(int)($cookie->last_visited_category);
 
-		$smarty->cache_lifetime = 31536000; // 1 Year
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
 		Tools::enableCache();
 		if (!$this->isCached('blockcategories_footer.tpl', $smartyCacheId))
 		{
-			$maxdepth = Configuration::get('BLOCK_CATEG_MAX_DEPTH');
-			if (!$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
-				SELECT c.id_parent, c.id_category, cl.name, cl.description, cl.link_rewrite
-				FROM `'._DB_PREFIX_.'category` c
-				LEFT JOIN `'._DB_PREFIX_.'category_lang` cl ON (c.`id_category` = cl.`id_category` AND `id_lang` = '.$id_lang.')
-				LEFT JOIN `'._DB_PREFIX_.'category_group` cg ON (cg.`id_category` = c.`id_category`)
-				WHERE (c.`active` = 1 OR c.`id_category` = 1)
-				'.((int)($maxdepth) != 0 ? ' AND `level_depth` <= '.(int)($maxdepth) : '').'
-				AND cg.`id_group` IN ('.pSQL($groups).')
-				GROUP BY id_category
-				ORDER BY `level_depth` ASC, '.(Configuration::get('BLOCK_CATEG_SORT') ? 'cl.`name`' : 'c.`position`').' '.(Configuration::get('BLOCK_CATEG_SORT_WAY') ? 'DESC' : 'ASC'))
-			)
-				return;
-			$resultParents = array();
-			$resultIds = array();
-
-			foreach ($result as &$row)
-			{
-				$resultParents[$row['id_parent']][] = &$row;
-				$resultIds[$row['id_category']] = &$row;
-			}
+			$data=self::getTreeAll($groups, $id_lang);
+			$result=$data['result'];
+			$blockCategTree=$data['blockCategTree'];
 			//$nbrColumns = Configuration::get('BLOCK_CATEG_NBR_COLUMNS_FOOTER');
 			$nbrColumns = Configuration::get('BLOCK_CATEG_NBR_COLUMN_FOOTER');
 			if (!$nbrColumns)
@@ -270,27 +274,10 @@ class BlockCategories extends Module
 			$widthColumn= floor(100/$nbrColumns);
 			$smarty->assign('numberColumn', $numberColumn);
 			$smarty->assign('widthColumn', $widthColumn);
-			
-			$blockCategTree = $this->getTree($resultParents, $resultIds, Configuration::get('BLOCK_CATEG_MAX_DEPTH'));
-			unset($resultParents);
-			unset($resultIds);
+
 			$isDhtml = (Configuration::get('BLOCK_CATEG_DHTML') == 1 ? true : false);
 
-			if (Tools::isSubmit('id_category'))
-			{
-				$cookie->last_visited_category = $id_category;
-				$smarty->assign('currentCategoryId', $cookie->last_visited_category);
-			}
-			if (Tools::isSubmit('id_product'))
-			{
-				if (!isset($cookie->last_visited_category) OR !Product::idIsOnCategoryId($id_product, array('0' => array('id_category' => $cookie->last_visited_category))))
-				{
-					$product = new Product($id_product);
-					if (isset($product) AND Validate::isLoadedObject($product))
-						$cookie->last_visited_category = (int)($product->id_category_default);
-				}
-				$smarty->assign('currentCategoryId', (int)($cookie->last_visited_category));
-			}
+			$smarty->assign('currentCategoryId', (int)($cookie->last_visited_category));
 			$smarty->assign('blockCategTree', $blockCategTree);
 
 			if (file_exists(_PS_THEME_DIR_.'modules/blockcategories/blockcategories_footer.tpl'))
@@ -318,7 +305,9 @@ class BlockCategories extends Module
 
 	private function _clearBlockcategoriesCache()
 	{
-		$this->_clearCache('blockcategories.tpl');
+		$this->_clearCache(__FILE__, 'blockcategories.tpl');
+		$this->_clearCache(__FILE__, 'blockcategories_footer.tpl');
+		Cache::getInstance()->delete('categoriesTree');
 		Tools::restoreCacheSettings();
 	}
 

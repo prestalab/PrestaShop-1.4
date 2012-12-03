@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -74,38 +73,46 @@ class ManufacturerControllerCore extends FrontController
 	
 	public function process()
 	{
-		if (Validate::isLoadedObject($this->manufacturer) && $this->manufacturer->active)
+		$id_lang = (int)(self::$cookie->id_lang);
+		$id_currency = (int)(self::$cookie->id_currency);
+		$this->smartyCacheId = 'id_manufacturer_'.Tools::getValue('id_manufacturer').'|ManufacturerController|'.$id_lang.'-'.$id_currency.'-'.Tools::getValue('orderby').'-'.Tools::getValue('orderway').'-'.Tools::getValue('p');
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LIST'); // 24 Hours
+		Tools::enableCache();
+		if(!self::$smarty->isCached(_PS_THEME_DIR_.($this->manufacturer?'manufacturer.tpl':'manufacturer-list.tpl'), $this->smartyCacheId))
 		{
-			$nbProducts = $this->manufacturer->getProducts($this->manufacturer->id, null, null, null, $this->orderBy, $this->orderWay, true);
-			$this->pagination($nbProducts);
-			self::$smarty->assign(array(
-				'nb_products' => $nbProducts,
-				'products' => $this->manufacturer->getProducts($this->manufacturer->id, (int)self::$cookie->id_lang, (int)$this->p, (int)$this->n, $this->orderBy, $this->orderWay),
-				'path' => ($this->manufacturer->active ? Tools::safeOutput($this->manufacturer->name) : ''),
-				'manufacturer' => $this->manufacturer));
-		}
-		elseif (!Tools::getValue('id_manufacturer'))
-		{
-			if (Configuration::get('PS_DISPLAY_SUPPLIERS'))
+			if (Validate::isLoadedObject($this->manufacturer) && $this->manufacturer->active)
 			{
-				$result = Manufacturer::getManufacturers(true, (int)self::$cookie->id_lang, true);
-				$nbProducts = count($result);
+				$nbProducts = $this->manufacturer->getProducts($this->manufacturer->id, null, null, null, $this->orderBy, $this->orderWay, true);
 				$this->pagination($nbProducts);
-				
-				$manufacturers = Manufacturer::getManufacturers(true, (int)self::$cookie->id_lang, true, $this->p, $this->n);
-				foreach ($manufacturers AS &$row)
-					$row['image'] = (!file_exists(_PS_MANU_IMG_DIR_.'/'.$row['id_manufacturer'].'-medium.jpg')) ? Language::getIsoById((int)self::$cookie->id_lang).'-default' : $row['id_manufacturer'];
-						
 				self::$smarty->assign(array(
-					'pages_nb' => ceil($nbProducts / (int)$this->n),
-					'nbManufacturers' => $nbProducts,
-					'mediumSize' => Image::getSize('medium'),
-					'manufacturers' => $manufacturers,
-					'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
-				));
+					'nb_products' => $nbProducts,
+					'products' => $this->manufacturer->getProducts($this->manufacturer->id, (int)self::$cookie->id_lang, (int)$this->p, (int)$this->n, $this->orderBy, $this->orderWay),
+					'path' => ($this->manufacturer->active ? Tools::safeOutput($this->manufacturer->name) : ''),
+					'manufacturer' => $this->manufacturer));
 			}
-			else
-				self::$smarty->assign('nbManufacturers', 0);
+			elseif (!Tools::getValue('id_manufacturer'))
+			{
+				if (Configuration::get('PS_DISPLAY_SUPPLIERS'))
+				{
+					$result = Manufacturer::getManufacturers(true, (int)self::$cookie->id_lang, true);
+					$nbProducts = count($result);
+					$this->pagination($nbProducts);
+
+					$manufacturers = Manufacturer::getManufacturers(true, (int)self::$cookie->id_lang, true, $this->p, $this->n);
+					foreach ($manufacturers AS &$row)
+						$row['image'] = (!file_exists(_PS_MANU_IMG_DIR_.'/'.$row['id_manufacturer'].'-medium.jpg')) ? Language::getIsoById((int)self::$cookie->id_lang).'-default' : $row['id_manufacturer'];
+
+					self::$smarty->assign(array(
+						'pages_nb' => ceil($nbProducts / (int)$this->n),
+						'nbManufacturers' => $nbProducts,
+						'mediumSize' => Image::getSize('medium'),
+						'manufacturers' => $manufacturers,
+						'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
+					));
+				}
+				else
+					self::$smarty->assign('nbManufacturers', 0);
+			}
 		}
 	}
 	
@@ -119,9 +126,10 @@ class ManufacturerControllerCore extends FrontController
 	{
 		parent::displayContent();
 		if ($this->manufacturer)
-			self::$smarty->display(_PS_THEME_DIR_.'manufacturer.tpl');
+			self::$smarty->display(_PS_THEME_DIR_.'manufacturer.tpl', $this->smartyCacheId);
 		else
-			self::$smarty->display(_PS_THEME_DIR_.'manufacturer-list.tpl');
+			self::$smarty->display(_PS_THEME_DIR_.'manufacturer-list.tpl', $this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 	
 }

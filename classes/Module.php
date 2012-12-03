@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -104,11 +103,15 @@ abstract class ModuleCore
 		{
 			if (self::$modulesCache === null)
 			{
-				self::$modulesCache = array();
-				$db = Db::getInstance();
-				$result = $db->ExecuteS('SELECT * FROM `'.bqSQL(_DB_PREFIX_.$this->table).'`', false);
-				while ($row = $db->nextRow($result))
-					self::$modulesCache[$row['name']] = $row;
+				self::$modulesCache = Cache::getInstance()->get('modulesCache');
+				if(!self::$modulesCache)
+				{
+					$db = Db::getInstance();
+					$result = $db->ExecuteS('SELECT * FROM `'.bqSQL(_DB_PREFIX_.$this->table).'`', false);
+					while ($row = $db->nextRow($result))
+						self::$modulesCache[$row['name']] = $row;
+					Cache::getInstance()->set('modulesCache', self::$modulesCache);
+				}
 			}
 			if (isset(self::$modulesCache[$this->name]))
 			{
@@ -129,6 +132,7 @@ abstract class ModuleCore
 	{
 		if (!Validate::isModuleName($this->name))
 			die(Tools::displayError());
+		Module::dropCache();
 		$result = Db::getInstance()->getRow('
 		SELECT `id_module`
 		FROM `'._DB_PREFIX_.'module`
@@ -151,6 +155,7 @@ abstract class ModuleCore
 	{
 		if (!Validate::isUnsignedId($this->id))
 			return false;
+		Module::dropCache();
 		$result = Db::getInstance()->ExecuteS('
 		SELECT `id_hook`
 		FROM `'._DB_PREFIX_.'hook_module` hm
@@ -705,12 +710,12 @@ abstract class ModuleCore
 			$hookArgs['cart'] = $cart;
 		}
 		$hook_name = strtolower($hook_name);
-
-		if (!isset(self::$_hookModulesCache))
+		self::$_hookModulesCache=Cache::getInstance()->get('hookModulesCache');
+		if (!isset(self::$_hookModulesCache)||!self::$_hookModulesCache)
 		{
 			$db = Db::getInstance(_PS_USE_SQL_SLAVE_);
 			$result = $db->ExecuteS('
-			SELECT h.`name` hook, m.`id_module`, h.`id_hook`, m.`name` module, h.`live_edit`
+			SELECT h.`name` hook, m.`id_module`, h.`id_hook`, m.`name` module, h.`live_edit`, hm.`time`
 			FROM `'._DB_PREFIX_.'module` m
 			LEFT JOIN `'._DB_PREFIX_.'hook_module` hm ON (hm.`id_module` = m.`id_module`)
 			LEFT JOIN `'._DB_PREFIX_.'hook` h ON (hm.`id_hook` = h.`id_hook`)
@@ -719,13 +724,16 @@ abstract class ModuleCore
 			self::$_hookModulesCache = array();
 
 			if ($result)
+			{
 				while ($row = $db->nextRow())
 				{
 					$row['hook'] = strtolower($row['hook']);
 					if (!isset(self::$_hookModulesCache[$row['hook']]))
 						self::$_hookModulesCache[$row['hook']] = array();
-					self::$_hookModulesCache[$row['hook']][] = array('id_hook' => $row['id_hook'], 'module' => $row['module'], 'id_module' => $row['id_module'], 'live_edit' => $row['live_edit']);
+					self::$_hookModulesCache[$row['hook']][] = array('id_hook' => $row['id_hook'], 'module' => $row['module'], 'id_module' => $row['id_module'], 'live_edit' => $row['live_edit'], 'time' => $row['time']);
 				}
+				Cache::getInstance()->set('hookModulesCache', self::$_hookModulesCache);
+			}
 		}
 
 		if (!isset(self::$_hookModulesCache[$hook_name]))
@@ -747,7 +755,17 @@ abstract class ModuleCore
 			if (method_exists($moduleInstance, 'hook'.$hook_name))
 			{
 				$hookArgs['altern'] = ++$altern;
-				$display = $moduleInstance->{'hook'.$hook_name}($hookArgs);
+				if($array['time']==0)
+					$display = $moduleInstance->{'hook'.$hook_name}($hookArgs);
+				else
+				{
+					$cache_id=$array['module'].'|'.$hook_name.'|'.$hookArgs['cookie']->id_lang;
+					if(!($display = Cache::getInstance()->get($cache_id)))
+					{
+						$display = $moduleInstance->{'hook'.$hook_name}($hookArgs);
+						Cache::getInstance()->set($cache_id, $display, $array['time']);
+					}
+				}
 
 				if ($array['live_edit'] && ((Tools::isSubmit('live_edit') && Tools::getValue('ad') && (Tools::getValue('liveToken') == sha1(Tools::getValue('ad')._COOKIE_KEY_)))))
 				{
@@ -777,7 +795,7 @@ abstract class ModuleCore
 		$hookArgs = array('cookie' => $cookie, 'cart' => $cart);
 		$output = '';
 
-		$result = self::getPaymentModules();
+		$result = Module::getPaymentModules();
 
 		if ($result)
 			foreach ($result as $module)
@@ -905,6 +923,7 @@ abstract class ModuleCore
 		WHERE hm.`id_hook` = '.(int)($id_hook).'
 		ORDER BY hm.`position` '.((int)($way) ? 'ASC' : 'DESC')))
 			return false;
+		Module::dropCache();
 		foreach ($res as $key => $values)
 			if ((int)($values[$this->identifier]) == (int)($this->id))
 			{
@@ -939,6 +958,7 @@ abstract class ModuleCore
 	 */
 	public function cleanPositions($id_hook)
 	{
+		Module::dropCache();
 		$result = Db::getInstance()->ExecuteS('
 		SELECT `id_module`
 		FROM `'._DB_PREFIX_.'hook_module`
@@ -1094,10 +1114,13 @@ abstract class ModuleCore
 			return $smarty->is_cached($this->_getApplicableTemplateDir($template).$template, $cacheId, $compileId);
 	}
 
-	protected function _clearCache($template, $cacheId = null, $compileId = null)
+	protected function _clearCache($file, $template, $cacheId = null, $compileId = null)
 	{
+		$overloaded = self::_isTemplateOverloadedStatic(basename($file, '.php'), $template);
+		if($template)
+			$template = ($overloaded ? _PS_THEME_DIR_.'modules/'.basename($file, '.php') : _PS_MODULE_DIR_.basename($file, '.php')).'/'.$template;
 		global $smarty;
-		Tools::clearCache($smarty);
+		Tools::clearCache($smarty, $template, $cacheId, $compileId);
 	}
 
 	protected function _generateConfigXml()
@@ -1124,5 +1147,13 @@ abstract class ModuleCore
 	public function isHookableOn($hook_name)
 	{
 		return is_callable(array($this, 'hook'.ucfirst($hook_name)));
+	}
+
+
+	public static function dropCache()
+	{
+		$cache_instance=Cache::getInstance();
+		$cache_instance->delete('modulesCache');
+		$cache_instance->delete('hookModulesCache');
 	}
 }

@@ -8,3 +8,7 @@
 
 #admin-action-cms input.exclusive { float:right }
 
+.cms_categories_list{ margin:20px 0 20px 0; }
+.cms_categories_list.categories ul{ margin:0; padding:0; list-style:none; }
+.cms_categories_list ul li{float:left; margin-right:3px; list-style:none; }
+

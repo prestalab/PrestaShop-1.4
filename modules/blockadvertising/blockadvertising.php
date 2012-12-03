@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -70,8 +69,8 @@ class BlockAdvertising extends Module
 			$this->adv_imgname = 'advertising';
 			if (!file_exists(_PS_MODULE_DIR_.$this->name.'/advertising.jpg'))
 				$this->adv_imgname = '';
-			else
-				Configuration::updateValue('BLOCKADVERT_IMG_EXT','jpg');
+			//else
+			//	Configuration::updateValue('BLOCKADVERT_IMG_EXT','jpg');
 		}
 
 		if (!empty($this->adv_imgname))
@@ -99,7 +98,7 @@ class BlockAdvertising extends Module
 	 */
 	private function _deleteCurrentImg()
 	{
-
+		$this->_clearCache(__FILE__, 'blockadvertising.tpl');
 		if (file_exists(_PS_MODULE_DIR_.$this->name.'/'.$this->adv_imgname.'.'.Configuration::get('BLOCKADVERT_IMG_EXT')))
 			unlink(_PS_MODULE_DIR_.$this->name.'/'.$this->adv_imgname.'.'.Configuration::get('BLOCKADVERT_IMG_EXT'));
 		$this->adv_imgname = $this->adv_imgname == 'advertising_custom'?'advertising':'';
@@ -121,6 +120,7 @@ class BlockAdvertising extends Module
 		if (Tools::isSubmit('submitAdvConf'))
 		{
 			$file = false;
+			$this->_clearCache(__FILE__, 'blockadvertising.tpl');
 			if (isset($_FILES['adv_img']) AND isset($_FILES['adv_img']['tmp_name']) AND !empty($_FILES['adv_img']['tmp_name']))
 			{
 				if ($error = checkImage($_FILES['adv_img'], Tools::convertBytes(ini_get('upload_max_filesize'))))
@@ -211,12 +211,20 @@ class BlockAdvertising extends Module
 	public function hookRightColumn($params)
 	{
 		global $smarty, $protocol_content;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockadvertising|'.$id_lang;
 
-		$smarty->assign('image', $protocol_content.$this->adv_img);
-		$smarty->assign('adv_link', $this->adv_link);
-		$smarty->assign('adv_title', $this->adv_title);
-
-		return $this->display(__FILE__, 'blockadvertising.tpl');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blockadvertising.tpl', $smartyCacheId))
+		{
+			$smarty->assign('image', $protocol_content.$this->adv_img);
+			$smarty->assign('adv_link', $this->adv_link);
+			$smarty->assign('adv_title', $this->adv_title);
+		}
+		$display = $this->display(__FILE__, 'blockadvertising.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	public function hookLeftColumn($params)

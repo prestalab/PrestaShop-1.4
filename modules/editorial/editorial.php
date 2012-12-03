@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -124,6 +123,7 @@ class Editorial extends Module
 		// Delete logo image
 		if (Tools::isSubmit('deleteImage'))
 		{
+			$this->_clearCache(__FILE__, 'editorial.tpl');
 			if (!file_exists(dirname(__FILE__).'/homepage_logo.jpg'))
 				$errors .= $this->displayError($this->l('This action cannot be taken.'));
 			else
@@ -140,7 +140,7 @@ class Editorial extends Module
 		{
 			// Forbidden key
 			$forbidden = array('submitUpdate');
-			
+			$this->_clearCache(__FILE__, 'editorial.tpl');
 			$editorial = new EditorialClass(1);
 			$editorial->copyFromPost();
 			$editorial->update();
@@ -297,17 +297,25 @@ class Editorial extends Module
 	public function hookHome($params)
 	{
 		global $smarty;
-		
-		$smarty->assign(array(
-		'editorial' => new EditorialClass(1, (int)$params['cookie']->id_lang),
-		'default_lang' => (int)$params['cookie']->id_lang,
-		'image_width' => (int)Configuration::get('EDITORIAL_IMAGE_WIDTH'),
-		'image_height' => (int)Configuration::get('EDITORIAL_IMAGE_HEIGHT'),
-		'id_lang' => (int)$params['cookie']->id_lang,
-		'homepage_logo' => !Configuration::get('EDITORIAL_IMAGE_DISABLE') && (bool)file_exists('modules/editorial/homepage_logo.jpg'),
-		'image_path' => $this->_path.'homepage_logo.jpg'));
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'editorial|'.$id_lang;
 
-		return $this->display(__FILE__, 'editorial.tpl');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('editorial.tpl', $smartyCacheId))
+		{
+			$smarty->assign(array(
+			'editorial' => new EditorialClass(1, (int)$params['cookie']->id_lang),
+			'default_lang' => (int)$params['cookie']->id_lang,
+			'image_width' => (int)Configuration::get('EDITORIAL_IMAGE_WIDTH'),
+			'image_height' => (int)Configuration::get('EDITORIAL_IMAGE_HEIGHT'),
+			'id_lang' => (int)$params['cookie']->id_lang,
+			'homepage_logo' => !Configuration::get('EDITORIAL_IMAGE_DISABLE') && (bool)file_exists('modules/editorial/homepage_logo.jpg'),
+			'image_path' => $this->_path.'homepage_logo.jpg'));
+		}
+		$display = $this->display(__FILE__, 'editorial.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 	
 	public function hookHeader()

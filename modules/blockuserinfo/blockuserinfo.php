@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -60,16 +59,26 @@ class BlockUserInfo extends Module
 		if (!$this->active)
 			return;
 		global $smarty, $cookie, $cart;
-		$smarty->assign(array(
-			'cart' => $cart,
-			'cart_qties' => $cart->nbProducts(),
-			'logged' => $cookie->isLogged(),
-			'customerName' => ($cookie->logged ? $cookie->customer_firstname.' '.$cookie->customer_lastname : false),
-			'firstName' => ($cookie->logged ? $cookie->customer_firstname : false),
-			'lastName' => ($cookie->logged ? $cookie->customer_lastname : false),
-			'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order'
-		));
-		return $this->display(__FILE__, 'blockuserinfo.tpl');
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockuserinfo|'.$id_lang;
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		if(!$cookie->logged&&!$cart->id)
+			Tools::enableCache();
+		if (!$this->isCached('blockuserinfo.tpl', $smartyCacheId))
+		{
+			$smarty->assign(array(
+				'cart' => $cart,
+				'cart_qties' => $cart->nbProducts(),
+				'logged' => $cookie->isLogged(),
+				'customerName' => ($cookie->logged ? $cookie->customer_firstname.' '.$cookie->customer_lastname : false),
+				'firstName' => ($cookie->logged ? $cookie->customer_firstname : false),
+				'lastName' => ($cookie->logged ? $cookie->customer_lastname : false),
+				'order_process' => Configuration::get('PS_ORDER_PROCESS_TYPE') ? 'order-opc' : 'order'
+			));
+		}
+		$display = $this->display(__FILE__, 'blockuserinfo.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 	
 	public function hookHeader($params)

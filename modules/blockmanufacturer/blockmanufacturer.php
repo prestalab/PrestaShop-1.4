@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -55,16 +54,26 @@ class BlockManufacturer extends Module
     function hookLeftColumn($params)
     {
 		global $smarty, $link;
-		
-		$smarty->assign(array(
-			'manufacturers' => Manufacturer::getManufacturers(),
-			'link' => $link,
-			'text_list' => Configuration::get('MANUFACTURER_DISPLAY_TEXT'),
-			'text_list_nb' => Configuration::get('MANUFACTURER_DISPLAY_TEXT_NB'),
-			'form_list' => Configuration::get('MANUFACTURER_DISPLAY_FORM'),
-			'display_link_manufacturer' => Configuration::get('PS_DISPLAY_SUPPLIERS'),
-		));
-		return $this->display(__FILE__, 'blockmanufacturer.tpl');
+	    $id_lang = (int)($params['cookie']->id_lang);
+	    $smartyCacheId = 'blockmanufacturer|'.$id_lang;
+
+	    $smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+	    Tools::enableCache();
+	    if (!$this->isCached('blockmanufacturer.tpl', $smartyCacheId))
+	    {
+			$smarty->assign(array(
+				'manufacturers' => Manufacturer::getManufacturers(),
+				'link' => $link,
+				'text_list' => Configuration::get('MANUFACTURER_DISPLAY_TEXT'),
+				'text_list_nb' => Configuration::get('MANUFACTURER_DISPLAY_TEXT_NB'),
+				'form_list' => Configuration::get('MANUFACTURER_DISPLAY_FORM'),
+				'display_link_manufacturer' => Configuration::get('PS_DISPLAY_SUPPLIERS'),
+			));
+	    }
+
+	    $display = $this->display(__FILE__, 'blockmanufacturer.tpl', $smartyCacheId);
+	    Tools::restoreCacheSettings();
+	    return $display;
 	}
 	
 	function hookRightColumn($params)
@@ -77,6 +86,7 @@ class BlockManufacturer extends Module
 		$output = '<h2>'.$this->displayName.'</h2>';
 		if (Tools::isSubmit('submitBlockManufacturers'))
 		{
+			$this->_clearCache(__FILE__, 'blockmanufacturer.tpl');
 			$text_list = (int)(Tools::getValue('text_list'));
 			$text_nb = (int)(Tools::getValue('text_nb'));
 			$form_list = (int)(Tools::getValue('form_list'));

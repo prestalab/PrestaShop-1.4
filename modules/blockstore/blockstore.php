@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -64,9 +63,18 @@ class BlockStore extends Module
 	function hookRightColumn($params)
 	{
 		global $smarty;
-		
-		$smarty->assign('store_img', Configuration::get('BLOCKSTORE_IMG'));
-		return $this->display(__FILE__, 'blockstore.tpl');
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockstore|'.$id_lang;
+
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blockstore.tpl', $smartyCacheId))
+		{
+			$smarty->assign('store_img', Configuration::get('BLOCKSTORE_IMG'));
+		}
+		$display = $this->display(__FILE__, 'blockstore.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 	
 	function hookHeader($params)
@@ -78,6 +86,7 @@ class BlockStore extends Module
 	{
 		if (Tools::isSubmit('submitStoreConf'))
 		{
+			$this->_clearCache(__FILE__, 'blockstore.tpl');
 			if (isset($_FILES['store_img']) AND isset($_FILES['store_img']['tmp_name']) AND !empty($_FILES['store_img']['tmp_name']))
 			{
 				if ($error = checkImage($_FILES['store_img'], 4000000))

@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -364,7 +363,12 @@ class ParentOrderControllerCore extends FrontController
 		$customer = new Customer((int)(self::$cookie->id_customer));
 		$address = new Address((int)(self::$cart->id_address_delivery));
 		$id_zone = Address::getZoneById((int)($address->id));
-		$carriers = Carrier::getCarriersForOrder($id_zone, $customer->getGroups());
+		$country = new Country($address->id_country);
+		
+		if ((bool)$country->active)
+			$carriers = Carrier::getCarriersForOrder($id_zone, $customer->getGroups());
+		else
+			$carriers = array();
 
 		self::$smarty->assign(array(
 			'checked' => $this->_setDefaultCarrierSelection($carriers),

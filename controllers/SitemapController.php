@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -39,21 +38,28 @@ class SitemapControllerCore extends FrontController
 	public function process()
 	{
 		parent::process();
-		
-		self::$smarty->assign('categoriesTree', Category::getRootCategory()->recurseLiteCategTree(0));
-		self::$smarty->assign('categoriescmsTree', CMSCategory::getRecurseCategory(_USER_ID_LANG_, 1, 1, 1));
-		self::$smarty->assign('voucherAllowed', (int)(Configuration::get('PS_VOUCHERS')));
-		$blockmanufacturer = Module::getInstanceByName('blockmanufacturer');
-		$blocksupplier = Module::getInstanceByName('blocksupplier');
-		self::$smarty->assign('display_manufacturer_link', (((int)$blockmanufacturer->id) ? true : false));
-		self::$smarty->assign('display_supplier_link', (((int)$blocksupplier->id) ? true : false));
-		self::$smarty->assign('PS_DISPLAY_SUPPLIERS', Configuration::get('PS_DISPLAY_SUPPLIERS'));
-		self::$smarty->assign('display_store', Configuration::get('PS_STORES_DISPLAY_SITEMAP'));
+		$id_lang = (int)(self::$cookie->id_lang);
+		$this->smartyCacheId = 'categories|cms|SitemapController|'.$id_lang;
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 24 Hours
+		Tools::enableCache();
+		if(!self::$smarty->isCached(_PS_THEME_DIR_.'sitemap.tpl', $this->smartyCacheId))
+		{
+			self::$smarty->assign('categoriesTree', Category::getRootCategory()->recurseLiteCategTree(0));
+			self::$smarty->assign('categoriescmsTree', CMSCategory::getRecurseCategory(_USER_ID_LANG_, 1, 1, 1));
+			self::$smarty->assign('voucherAllowed', (int)(Configuration::get('PS_VOUCHERS')));
+			$blockmanufacturer = Module::getInstanceByName('blockmanufacturer');
+			$blocksupplier = Module::getInstanceByName('blocksupplier');
+			self::$smarty->assign('display_manufacturer_link', (((int)$blockmanufacturer->id) ? true : false));
+			self::$smarty->assign('display_supplier_link', (((int)$blocksupplier->id) ? true : false));
+			self::$smarty->assign('PS_DISPLAY_SUPPLIERS', Configuration::get('PS_DISPLAY_SUPPLIERS'));
+			self::$smarty->assign('display_store', Configuration::get('PS_STORES_DISPLAY_SITEMAP'));
+		}
 	}
 	
 	public function displayContent()
 	{
 		parent::displayContent();
-		self::$smarty->display(_PS_THEME_DIR_.'sitemap.tpl');
+		self::$smarty->display(_PS_THEME_DIR_.'sitemap.tpl', $this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 }

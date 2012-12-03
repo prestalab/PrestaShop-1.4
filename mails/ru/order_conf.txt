@@ -1,0 +1,34 @@
+Здравствуйте, {firstname} {lastname}, благодарим вас за заказ!
+
+Детали заказа
+
+	Заказ: {order_name} добавлен {date}
+	Способ оплаты: {payment}
+
+	Итого: {total_products}
+	Скидки: {total_discounts}
+	Доставка: {total_shipping}
+	Подарочная упаковка {total_wrapping}
+	Итого к оплате: {total_paid}
+
+
+Доставка
+
+	Способ доставки: {carrier}
+
+	Адрес доставки:
+
+	{delivery_company}
+	{delivery_firstname} {delivery_lastname}
+	{delivery_address1}
+	{delivery_address2}
+	{delivery_postal_code} {delivery_city}
+	{delivery_country} {delivery state}
+	{delivery_other}
+
+
+Вы можете просмотреть этот заказ в нашем интернет-магазине, нажав \"Мои заказы\".
+
+{shop_name} - {shop_url}
+
+{mail_text}

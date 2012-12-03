@@ -1,11 +1,11 @@
-We miss you at {shop_name}
+Мы соскучились по вам {shop_name}
 
-Hello {firstname} {lastname},
- 
-You are part of our best customers, however you have not ordered for {days_threshold} days.
+Здравствуйте {firstname} {lastname},
 
-We wish to thank you for the trust you place in us and we grant you a discount of {amount}% valid on your next order! This offer is valid for {days} days, so do not waste a moment!
- 
-Here is your coupon: {voucher_num}
+Вы являетесь частью наших лучших клиентов, однако вы не заказывали {days_threshold} дней.
 
-Enter this code in your shopping cart to get your discount.
+Мы хотим поблагодарить вас за доверие, которую вы оказываете нам, и мы предоставляем вам скидку {amount}%, для вашего следующего заказа! Это предложение действует в течение {days} дней, просим вас не упустит момент!
+
+здесь указан ваш купон на скидку: {voucher_num}
+
+Введите этот код для входа в корзину, чтобы получить вашу скидку.

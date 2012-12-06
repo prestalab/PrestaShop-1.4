@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -3089,32 +3088,43 @@ class AdminProducts extends AdminTab
 						</td>
 					</tr>
 					<tr><td colspan="2" style="padding-bottom:10px;"><hr style="width:100%;" /></td></tr>';
-					if (!sizeof($images) OR !isset($obj->id))
-						echo '<tr>
+//<!-- BOF Multi Image Uploader V2 -->
+
+		echo' </table>'; // Closes Table above
+
+//<!-- BOF Additional Table for formatting -->
+
+		echo'<table cellpadding="5" style="width:100%">
+					<tr><td style="width: 50%;"></td><td style="width: 50%;"></td></tr>'; //this line sets the Cell widths
+
+		if (!sizeof($images) OR !isset($obj->id))
+			echo '<tr>
 						<td colspan="2" style="text-align:center;">
 							<input type="hidden" value="off" name="productCreated" />
 							'.(Tools::isSubmit('id_category') ? '<input type="submit" value="'.$this->l('Save').'" name="submitAdd'.$this->table.'" class="button" />' : '').'
 							&nbsp;<input type="submit" value="'.$this->l('Save and stay').'" name="submitAdd'.$this->table.'AndStay" class="button" /></td>
 					</tr>';
-					else
-					{
-						echo '
-						<tr>
-							<td colspan="2">
-							<table cellspacing="0" cellpadding="0" class="table">
-								<tr>
-									<th style="width: 100px;">'.$this->l('Image').'</th>
-									<th>&nbsp;</th>
-									<th>'.$this->l('Position').'</th>
-									<th>'.$this->l('Cover').'</th>
-									<th>'.$this->l('Action').'</th>
-								</tr>';
+		else
+		{
 
-						foreach ($images AS $k => $image)
-						{
-							$image_obj = new Image($image['id_image']);
-							$img_path = $image_obj->getExistingImgPath();
-							echo  $this->_positionJS().'
+//<!-- BOF Images Cell/Table -->
+
+			echo '<tr>
+						<td valign="top" align="center">
+							<table cellspacing="0" cellpadding="0" class="table">
+							<tr>
+								<th style="width: 100px;">'.$this->l('Image').'</th>
+								<th>&nbsp;</th>
+								<th>'.$this->l('Position').'</th>
+								<th>'.$this->l('Cover').'</th>
+								<th>'.$this->l('Action').'</th>
+							</tr>';
+
+			foreach ($images AS $k => $image)
+			{
+				$image_obj = new Image($image['id_image']);
+				$img_path = $image_obj->getExistingImgPath();
+				echo  $this->_positionJS().'
 							<tr>
 								<td style="padding: 4px;"><a href="'._THEME_PROD_DIR_.$img_path.'.jpg" target="_blank">
 								<img src="'._THEME_PROD_DIR_.$img_path.'-small.jpg'.((int)(Tools::getValue('image_updated')) === (int)($image['id_image']) ? '?date='.time() : '').'"
@@ -3122,23 +3132,23 @@ class AdminProducts extends AdminTab
 								<td class="center">'.(int)($image['position']).'</td>
 								<td class="position-cell">';
 
-							if ($image['position'] == 1)
-							{
-								echo '<span>[ <img src="../img/admin/up_d.gif" alt="" border="0"> ]</span>';
-								if ($image['position'] == $imagesTotal)
-									echo '<span>[ <img src="../img/admin/down_d.gif" alt="" border="0"> ]</span>';
-								else
-									echo '<span>[ <a onclick="return hideLink();" href="'.$currentIndex.'&id_image='.$image['id_image'].'&imgPosition='.$image['position'].'&imgDirection=0&token='.($token ? $token : $this->token).'"><img src="../img/admin/down.gif" alt="" border="0"></a> ]</span>';
-							}
-							elseif ($image['position'] == $imagesTotal)
-								echo '
+				if ($image['position'] == 1)
+				{
+					echo '<span>[ <img src="../img/admin/up_d.gif" alt="" border="0"> ]</span>';
+					if ($image['position'] == $imagesTotal)
+						echo '<span>[ <img src="../img/admin/down_d.gif" alt="" border="0"> ]</span>';
+					else
+						echo '<span>[ <a onclick="return hideLink();" href="'.$currentIndex.'&id_image='.$image['id_image'].'&imgPosition='.$image['position'].'&imgDirection=0&token='.($token ? $token : $this->token).'"><img src="../img/admin/down.gif" alt="" border="0"></a> ]</span>';
+				}
+				elseif ($image['position'] == $imagesTotal)
+					echo '
 									<span>[ <a onclick="return hideLink();" href="'.$currentIndex.'&id_image='.$image['id_image'].'&imgPosition='.$image['position'].'&imgDirection=1&token='.($token ? $token : $this->token).'"><img src="../img/admin/up.gif" alt="" border="0"></a> ]</span>
 									<span>[ <img src="../img/admin/down_d.gif" alt="" border="0"> ]</span>';
-							else
-								echo '
+				else
+					echo '
 									<span>[ <a onclick="return hideLink();" href="'.$currentIndex.'&id_image='.$image['id_image'].'&imgPosition='.$image['position'].'&imgDirection=1&token='.($token ? $token : $this->token).'"><img src="../img/admin/up.gif" alt="" border="0"></a> ]</span>
 									<span>[ <a onclick="return hideLink();" href="'.$currentIndex.'&id_image='.$image['id_image'].'&imgPosition='.$image['position'].'&imgDirection=0&token='.($token ? $token : $this->token).'"><img src="../img/admin/down.gif" alt="" border="0"></a> ]</span>';
-							echo '
+				echo '
 								</td>
 								<td class="center"><a href="'.$currentIndex.'&id_image='.$image['id_image'].'&coverImage&token='.($token ? $token : $this->token).'"><img src="../img/admin/'.($image['cover'] ? 'enabled.gif' : 'forbbiden.gif').'" alt="" /></a></td>
 								<td class="center">
@@ -3146,15 +3156,166 @@ class AdminProducts extends AdminTab
 									<a href="'.$currentIndex.'&id_image='.$image['id_image'].'&deleteImage&tabs=1&token='.($token ? $token : $this->token).'" onclick="return confirm(\''.$this->l('Are you sure?', __CLASS__, true, false).'\');"><img src="../img/admin/delete.gif" alt="'.$this->l('Delete this image').'" title="'.$this->l('Delete this image').'" /></a>
 								</td>
 							</tr>';
-						}
-					}
+			}
+			echo'
+			</table>
+		</td>';
+		}
 
-			echo '
-							</table>
-						</td>
-					</tr>
-				</table>
-			</div>';
+//<!-- EOF Images Cell/Table -->
+//<!-- BOF Uploader Cell/Row -->
+
+		// If no images but product exist this adds an additional a bar to seperate from save/save and stay buttons because of the position of the default bar
+		if (!sizeof($images) && isset($obj->id)) echo'<tr><td colspan="2" style="padding-bottom:10px; padding-top:10px;"><hr style="width: 100%;" /></td></tr>';
+
+		// when no images present or this is a new product this creates an extra cell to put the uploader in to second cell, keeps things ordered for development
+		if (!sizeof($images) OR !isset($obj->id)) echo'<td></td>';
+
+		// creates opening statement for upload cell, if product does not exist parameters are not presented
+		echo'<td';
+		if ($obj->id) echo' valign="top" align="center" style="padding-left: 20px; padding-right: 10px; border-left: 1px solid #E0D0B1;"';
+		echo '>';
+
+		// This creates the uploader cell content if the product exists / has been saved
+		if ($obj->id) {?>
+
+		<!-- BOF Plupload -->
+
+		<!-- Load Queue widget CSS -->
+		<!--<style type="text/css">@import url(multi-image-uploader/css/plupload.queue.css);</style>-->
+		<style type="text/css">@import url(multi-image-uploader/js/jquery.plupload.queue/css/jquery.plupload.queue.css);</style>
+		<!-- Load Plupload and all it's runtimes -->
+		<script type="text/javascript" src="multi-image-uploader/js/plupload.full.js"></script>
+		<!-- Load the jQuery Queue widget - This is the actual GUI you see -->
+		<script type="text/javascript" src="multi-image-uploader/js/jquery.plupload.queue/jquery.plupload.queue.js"></script>
+
+		<script type="text/javascript">
+			// Convert divs to queue widgets when the DOM is ready
+
+			$(function() {
+
+				// #uploader denotes div to be changed
+				$("#uploader").pluploadQueue({
+
+					// General settings
+					runtimes : 'html5,flash,silverlight,browserplus',
+					url : 'multi-image-uploader/upload.php',
+					multipart: true,
+					// These multipart_params are loaded immediately from what is on the page at load
+					multipart_params : {'img_name': 'uploaded-image-name', 'id_product': '<?php echo $obj->id; ?>', 'img_dir': '<?php echo _PS_IMG_DIR_; ?>'},
+					max_file_size : '<?php echo ($this->maxImageSize/1000)?>KB',
+					//chunk_size : '2mb',
+					//unique_names : true,
+
+					// Runs this function when Plupload is activated - only one function can be run here
+					//preinit: attachExtraParameters,
+					//preinit: attachCallbacks,
+					preinit: functionCaller,
+
+					// Resize images on clientside if we can
+					// resize : {width : 320, height : 240, quality : 90},
+
+					// Specify what files to browse for
+					filters : [
+						{title : "Image files", extensions : "jpg,jpeg,gif,png"},
+					],
+
+					// Flash settings
+					flash_swf_url : 'multi-image-uploader/js/plupload.flash.swf',
+
+					// Silverlight settings
+					silverlight_xap_url : 'multi-image-uploader/js/plupload.silverlight.xap'
+				});
+
+				// Client side form validation - change to #uploader because of submit button issue
+				$('#uploader').submit(function(e) {
+
+					var uploader = $('#uploader').pluploadQueue();
+
+					// Validate number of uploaded files
+					if (uploader.total.uploaded == 0) {
+						// Files in queue upload them first
+						if (uploader.files.length > 0) {
+
+							// When all files are uploaded submit form
+							uploader.bind('UploadProgress', function() {
+								if (uploader.total.uploaded == uploader.files.length)
+									$('form').submit();
+							});
+
+							uploader.start();
+
+						} else
+							alert('You must at least upload one file.');
+
+						e.preventDefault();
+					}
+				});
+
+			});
+
+			// BOF After Plupload is Activated Function Section - Note these are called with preinit above
+
+			// Calls multiple functions
+			function functionCaller(uploader){
+				attachExtraParameters(uploader);
+				attachCallbacks(uploader);
+			}
+
+			// Attach Extra Parameters (ie. new	values after page load)
+			function attachExtraParameters(uploader){
+				//uploader.bind('UploadFile', function(up, file) {$.extend(up.settings.multipart_params, { 'PluploadCaption' : document.getElementById('plupload-caption-inputbox').value });
+				//This works aswell - uploader.bind('UploadFile', function(up, file) {$.extend(up.settings.multipart_params, { 'PluploadCaption' : $('#plupload-caption-inputbox').val() });
+				//works - uploader.bind('UploadFile', function(up, file) {$.extend(up.settings.multipart_params, { <?php echo '\'legend_'.$language['id_lang'].'\' : document.getElementById(\'legend_'.$language['id_lang'].'\').value';?> });
+				uploader.bind('UploadFile', function(up, file) {$.extend(up.settings.multipart_params, { <?php
+
+					foreach ($this->_languages as $language)
+					{
+						if (!Tools::getValue('legend_'.$language['id_lang']))
+							$legend = $this->getFieldValue($obj, 'name', $language['id_lang']);
+						else
+							$legend = Tools::getValue('legend_'.$language['id_lang']);
+
+						echo '\'legend_'.$language['id_lang'].'\' : document.getElementById(\'legend_'.$language['id_lang'].'\').value, ';};?>});
+				});
+			}
+
+			// Refresh Page after all files uploaded
+			function attachCallbacks(uploader) {
+				uploader.bind('FileUploaded', function(Up, File, Response) {
+					if( (uploader.total.uploaded + 1) == uploader.files.length)
+					{
+						//window.location = 'http://www.anotherpage.co.uk';
+						//window.location.reload() + '&tab=1';
+						reload_url = window.location.href + "&tabs=1";
+						window.location = reload_url;
+					}
+				});
+			}
+
+			// EOF After Plupload is Activated Function Section
+
+		</script>
+
+		<?php
+		}
+
+		// This is the Div that the Plupload Converts
+		if ($obj->id) echo'
+			<div id="uploader">
+				<p>You browser doesnt have Flash, Silverlight, Gears, BrowserPlus or HTML5 support.</p>
+			</div>
+
+		<!-- EOF Plupload -->';
+
+		echo '</td></tr></table>';
+
+//<!-- EOF Uploader Cell/Row -->
+//<!-- EOF Additional Table for formatting -->
+
+		echo'</div>'; // EOF Main Container DIV for Step2
+
+//<!-- EOF Multi Image Uploader V2 -->
 			echo '
 			<script type="text/javascript" src="../js/attributesBack.js"></script>
 			<script type="text/javascript">

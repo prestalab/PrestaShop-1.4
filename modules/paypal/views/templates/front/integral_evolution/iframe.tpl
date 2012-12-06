@@ -19,7 +19,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision: 14011 $
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -58,9 +57,6 @@
 	<input type="hidden" name="invoice" value="{$customer->id}_{$time}" />
 	<input type="hidden" name="shipping" value="{$shipping}" />
 	<input type="hidden" name="tax" value="{$cart_details.total_tax}" />
-	{if ($cart->gift == 1)}
-		<input type="hidden" name="handling" value="{$gift_price}" />
-	{/if}
 	<input type="hidden" name="subtotal" value="{$subtotal}" />
 
 	<input type="hidden" name="custom" value="{$custom|escape:'htmlall'}" />

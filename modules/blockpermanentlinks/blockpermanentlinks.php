@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -57,7 +56,15 @@ class BlockPermanentLinks extends Module
 	*/
 	function hookTop($params)
 	{
-		return $this->display(__FILE__, 'blockpermanentlinks-header.tpl');
+		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blockpermanentlinks-header|'.$id_lang;
+
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		$display = $this->display(__FILE__, 'blockpermanentlinks-header.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	/**

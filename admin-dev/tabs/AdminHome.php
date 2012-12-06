@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -164,52 +163,8 @@ class AdminHome extends AdminTab
 
 		echo '<div>
 		<h1>'.$this->l('Dashboard').'</h1>
-		<hr style="background-color: #812143;color: #812143;" />
-		<br />';
-		if (@ini_get('allow_url_fopen'))
-		{
-			$upgrade = new Upgrader();
-			if($update = $upgrade->checkPSVersion())
-				echo '<div class="warning warn" style="margin-bottom: 30px;"><h3>'.$this->l('New PrestaShop version available').' : <a style="text-decoration: underline;" href="'.$update['link'].'" target="_blank">'.$this->l('Download').'&nbsp;'.$update['name'].'</a> !</h3></div>';
-		}
-		else
-		{
-			echo '
-			<div class="warning warn" style="margin-bottom: 20px; width: 600px;">
-			'.$this->l('Warning: Update notifications are not available').'<br />
-			'.$this->l('Please turn on the "allow_url_fopen" option in your php.ini config file.').' [<a href="http://www.php.net/manual/'.$isoUser.'/ref.filesystem.php">'.$this->l('more info').'</a>]<br />
-			</div>';
-		}
+		<hr style="background-color: #812143;color: #812143;" />';
 	  echo '</div>';
-
-	  	if ($employee->bo_show_screencast)
-			echo'
-			<div id="adminpresentation">
-				<iframe src="'.$protocol.'://screencasts.prestashop.com/screencast.php?iso_lang='.Tools::strtolower($isoUser).'" style="border:none;width:100%;height:420px;" scrolling="no"></iframe>
-				<div id="footer_iframe_home">
-					<!--<a href="#">'.$this->l('View more video tutorials').'</a>-->
-					<input type="checkbox" id="screencast_dont_show_again"><label for="screencast_dont_show_again">'.$this->l('don\'t show again').'</label>
-				</div>
-			</div>
-			<script type="text/javascript">
-			$(document).ready(function() {
-				$(\'#screencast_dont_show_again\').click(function() {
-					if ($(this).is(\':checked\'))
-					{
-						$.ajax({
-							type: \'POST\',
-							async: true,
-							url: \'ajax.php?toggleScreencast\',
-							success: function(data) {
-								$(\'#adminpresentation\').slideUp(\'slow\');
-							}
-						});
-					}
-				});
-			});
-			</script>
-			<div class="clear"></div><br />';
-
 
 		echo '
 		<div id="column_left">
@@ -388,46 +343,6 @@ class AdminHome extends AdminTab
 			</table>
 		</div>
 		<div id="column_right">
-			<script type="text/javascript">
-				$(document).ready(function() {
-					$.ajax({
-						url: "ajax.php",
-						dataType: "json",
-						data: "getAdminHomeElement",
-						success: function(json) {
-							if (json.screencast != \'NOK\')
-								$(\'#adminpresentation\').fadeIn(\'slow\');
-							else
-								$(\'#adminpresentation\').fadeOut(\'slow\');
-
-							$(\'#partner_preactivation\').fadeOut(\'slow\', function() {
-								if (json.partner_preactivation != \'NOK\')
-									$(\'#partner_preactivation\').html(json.partner_preactivation);
-								else
-									$(\'#partner_preactivation\').html(\'\');
-								$(\'#partner_preactivation\').fadeIn(\'slow\');
-							});
-
-							$(\'#discover_prestashop\').fadeOut(\'slow\', function() {
-								if (json.discover_prestashop != \'NOK\')
-									$(\'#discover_prestashop\').html(json.discover_prestashop);
-								else
-									$(\'#discover_prestashop\').html(\'\');
-								$(\'#discover_prestashop\').fadeIn(\'slow\');
-							});
-						},
-						error: function(XMLHttpRequest, textStatus, errorThrown)
-						{
-							$(\'#adminpresentation\').fadeOut(\'slow\');
-							$(\'#partner_preactivation\').fadeOut(\'slow\');
-							$(\'#discover_prestashop\').fadeOut(\'slow\');
-						}
-					});
-				});
-			</script>
-			<div id="partner_preactivation">
-				<p class="center"><img src="../img/loader.gif" alt="" /> '.translate('Loading...').'</p>
-			</div>
 		';
 
 		if (Tools::isSubmit('hideOptimizationTips'))
@@ -436,9 +351,6 @@ class AdminHome extends AdminTab
 		$this->_displayOptimizationTips();
 
 		echo '
-			<div id="discover_prestashop">
-				<p class="center"><img src="../img/loader.gif" alt="" /> '.translate('Loading...').'</p>
-			</div>
 		</div>
 		<div class="clear"></div>';
 

@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -29,8 +28,79 @@ define('_PS_SMARTY_DIR_', _PS_TOOL_DIR_.(_PS_FORCE_SMARTY_2_ ? 'smarty_v2' : 'sm
 
 require_once(_PS_SMARTY_DIR_.'Smarty.class.php');
 
+class Smarty_CacheResource_Presta extends Smarty_CacheResource_KeyValueStore
+{
+	/**
+	 * memcache instance
+	 * @var Memcache
+	 */
+	protected $cache_instance = null;
+
+	public function __construct()
+	{
+		$this->cache_instance = Cache::getInstance();
+	}
+
+	/**
+	 * Read values for a set of keys from cache
+	 *
+	 * @param array $keys list of keys to fetch
+	 * @return array list of values with the given keys used as indexes
+	 * @return boolean true on success, false on failure
+	 */
+	protected function read(array $keys)
+	{
+		$res = array();
+		foreach ($keys as $key) {
+			$res[$key] = $this->cache_instance->get($key);
+		}
+		return $res;
+	}
+
+	/**
+	 * Save values for a set of keys to cache
+	 *
+	 * @param array $keys list of values to save
+	 * @param int $expire expiration time
+	 * @return boolean true on success, false on failure
+	 */
+	protected function write(array $keys, $expire=null)
+	{
+		foreach ($keys as $k => $v) {
+			$this->cache_instance->set($k, $v, $expire);
+		}
+		return true;
+	}
+
+	/**
+	 * Remove values from cache
+	 *
+	 * @param array $keys list of keys to delete
+	 * @return boolean true on success, false on failure
+	 */
+	protected function delete(array $keys)
+	{
+		foreach ($keys as $k) {
+			$this->cache_instance->delete($k);
+		}
+		return true;
+	}
+
+	/**
+	 * Remove *all* values from cache
+	 *
+	 * @return boolean true on success, false on failure
+	 */
+	protected function purge()
+	{
+		return $this->cache_instance->flush();
+	}
+}
+
 global $smarty;
 $smarty = new Smarty();
+if(Configuration::get('PL_SMARTY_CACHE_REPLACE'))
+	$smarty->caching_type = 'presta';
 $smarty->template_dir = _PS_THEME_DIR_.'tpl';
 $smarty->compile_dir = _PS_SMARTY_DIR_.'compile';
 $smarty->cache_dir = _PS_SMARTY_DIR_.'cache';
@@ -52,10 +122,14 @@ if (_PS_FORCE_SMARTY_2_)
 }
 else
 {
-	if (Configuration::get('PS_HTML_THEME_COMPRESSION'))
+	if (Configuration::get('PS_HTML_THEME_COMPRESSION')==1)
 		$smarty->registerFilter('output', 'smartyMinifyHTML');
-	if (Configuration::get('PS_JS_HTML_THEME_COMPRESSION'))
+	elseif (Configuration::get('PS_HTML_THEME_COMPRESSION')==2)
+		$smarty->registerFilter('pre', 'smartyMinifyHTML');
+	if (Configuration::get('PS_JS_HTML_THEME_COMPRESSION')==1)
 		$smarty->registerFilter('output', 'smartyPackJSinHTML');
+	elseif (Configuration::get('PS_JS_HTML_THEME_COMPRESSION')==2)
+		$smarty->registerFilter('pre', 'smartyPackJSinHTML');
 }
 
 smartyRegisterFunction($smarty, 'modifier', 'truncate', 'smarty_modifier_truncate');

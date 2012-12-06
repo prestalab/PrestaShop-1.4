@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -31,7 +30,12 @@ class PageNotFoundControllerCore extends FrontController
 	
 	public function displayContent()
 	{
-		self::$smarty->display(_PS_THEME_DIR_.'404.tpl');
+		$id_lang = (int)(self::$cookie->id_lang);
+		$this->smartyCacheId = 'PageNotFoundController|'.$id_lang;
+		self::$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 24 Hours
+		Tools::enableCache();
+		self::$smarty->display(_PS_THEME_DIR_.'404.tpl',$this->smartyCacheId);
+		Tools::restoreCacheSettings();
 	}
 }
 

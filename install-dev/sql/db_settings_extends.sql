@@ -56,7 +56,7 @@ INSERT INTO `PREFIX_module` (`id_module`, `name`, `active`) VALUES (1, 'homefeat
 (34, 'graphvisifire', 1),(35, 'graphxmlswfcharts', 1),(36, 'graphgooglechart', 1),(37, 'graphartichow', 1),(39, 'gridhtml', 1),(40, 'statsbestcustomers', 1),
 (41, 'statsorigin', 1),(42, 'pagesnotfound', 1),(43, 'sekeywords', 1),(44, 'statsproduct', 1),(45, 'statsbestproducts', 1),(46, 'statsbestcategories', 1),
 (47, 'statsbestvouchers', 1),(48, 'statsbestsuppliers', 1),(49, 'statscarrier', 1),(50, 'statsnewsletter', 1),(51, 'statssearch', 1),(52, 'statscheckup', 1),(53, 'statsstock', 1),
-(54, 'blockstore', 1),(55, 'statsforecast', 1),(56, 'backwardcompatibility', 1);
+(54, 'blockstore', 1),(55, 'statsforecast', 1),(56, 'backwardcompatibility', 1),(57, 'cacheinvalidator', 1);
 
 INSERT INTO `PREFIX_hook` (`name`, `title`, `description`, `position`) VALUES
 	('myAccountBlock', 'My account block', 'Display extra informations inside the "my account" block', 1);
@@ -67,7 +67,7 @@ INSERT INTO `PREFIX_hook_module` (`id_module`, `id_hook`, `position`) VALUES (3,
 (35, 33, 2),(36, 33, 3),(37, 33, 4),(39, 37, 1),(40, 32, 8),(41, 32, 9),(42, 32, 10),(42, 95, 1),(43, 32, 11),(42, 14, 6),(43, 14, 7),(44, 32, 12),(45, 32, 13),(46, 32, 15),
 (47, 32, 14),(48, 32, 16),(49, 32, 17),(55, 32, 22),(50, 32, 18),(51, 32, 19),(51, 45, 1),(25, 25, 1),(41, 20, 2),(52, 32, 20),(53, 32, 21),(17, 9, 2),(18, 9, 3),(24, 9, 4),(9, 9, 5),
 (15, 9, 6),(5, 9, 7),(8, 9, 8),(10, 9, 9),(20, 9, 10),(11, 9, 11),(16, 9, 12),(22, 9, 13),(13, 9, 14),(14, 9, 15),(12, 9, 16),(7, 9, 17),(21, 9, 18),(10, 60, 1),(10, 61, 1),(10, 62, 1),
-(54, 9, 19),(10, 66, 1),(19, 9, 20),(56, 9, 1),(56, 50, 1),(56, 54, 1);
+(54, 9, 19),(10, 66, 1),(19, 9, 20),(56, 9, 1),(56, 50, 1),(56, 54, 1),(57, 5, 1),(57, 12, 1),(57, 13, 1),(57, 16, 1),(57, 60, 2),(57, 61, 2),(57, 62, 2);
 
 CREATE TABLE `PREFIX_pagenotfound` (
   `id_pagenotfound` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -1089,3 +1089,128 @@ INSERT INTO `PREFIX_store` (`id_store`, `id_country`, `id_state`, `name`, `addre
 (4, 21, 9, 'Coconut Grove', '2999 SW 32nd Avenue', '', ' Miami', ' 33133', 25.736296, -80.244797, 'a:7:{i:0;s:13:"09:00 - 19:00";i:1;s:13:"09:00 - 19:00";i:2;s:13:"09:00 - 19:00";i:3;s:13:"09:00 - 19:00";i:4;s:13:"09:00 - 19:00";i:5;s:13:"10:00 - 16:00";i:6;s:13:"10:00 - 16:00";}', '', '', '', '', 1, '2010-11-09 11:00:38', '2010-11-09 11:04:52'),
 (5, 21, 9, 'N Miami/Biscayne', '12055 Biscayne Blvd', '', 'Miami', '33181', 25.886740, -80.163292, 'a:7:{i:0;s:13:"09:00 - 19:00";i:1;s:13:"09:00 - 19:00";i:2;s:13:"09:00 - 19:00";i:3;s:13:"09:00 - 19:00";i:4;s:13:"09:00 - 19:00";i:5;s:13:"10:00 - 16:00";i:6;s:13:"10:00 - 16:00";}', '', '', '', '', 1, '2010-11-09 11:11:28', '2010-11-09 11:11:28');
 
+INSERT INTO `PREFIX_module_country` (`id_module`, `id_country`) VALUES
+(3, 177),
+(4, 177),
+(6, 177);
+
+INSERT IGNORE INTO `PREFIX_attribute_group_lang` (`id_attribute_group`, `id_lang`, `name`, `public_name`) VALUES
+(1, 6, 'Disk space', 'Disk space'),
+(2, 6, 'Color', 'Color'),
+(3, 6, 'ICU', 'Processor');
+
+INSERT IGNORE INTO `PREFIX_attribute_lang` (`id_attribute`, `id_lang`, `name`) VALUES
+(10, 6, '1.60GHz Intel Core 2 Duo'),
+(11, 6, '1.80GHz Intel Core 2 Duo'),
+(13, 6, '160GB: 40,000 Songs'),
+(16, 6, '16Go'),
+(1, 6, '2GB'),
+(17, 6, '32Go'),
+(2, 6, '4GB'),
+(9, 6, '80GB Parallel ATA Drive @ 4200 rpm'),
+(12, 6, '80GB: 20,000 Songs'),
+(15, 6, '8Go'),
+(14, 6, 'Black'),
+(4, 6, 'Blue'),
+(6, 6, 'Green'),
+(3, 6, 'Metal'),
+(8, 6, 'Optional 64GB solid-state drive'),
+(7, 6, 'Orange'),
+(5, 6, 'Pink'),
+(18, 6, 'Purple'),
+(20, 6, 'Red'),
+(19, 6, 'Yellow');
+
+INSERT IGNORE INTO `PREFIX_category_lang` (`id_category`, `id_lang`, `name`, `description`, `link_rewrite`, `meta_title`, `meta_keywords`, `meta_description`) VALUES
+(2, 6, 'iPods', 'Now that you can buy movies from the iTunes Store and sync them to your iPod, the whole world is your theater.', 'music-ipods', '', '', ''),
+(3, 6, 'Accessories', 'Wonderful accessories for your iPod', 'accessories-ipod', '', '', ''),
+(4, 6, 'Laptops', 'The latest Intel processor, a bigger hard drive, plenty of memory, and even more new features all fit inside just one liberating inch. The new Mac laptops have the performance, power, and connectivity of a desktop computer. Without the desk part.', 'laptops', 'Apple laptops', 'Apple laptops MacBook Air', 'Powerful and chic Apple laptops');
+
+INSERT IGNORE INTO `PREFIX_cms_block_lang` (`id_cms_block`, `id_lang`, `name`) VALUES
+(1, 6, 'Информация');
+
+INSERT IGNORE INTO `PREFIX_cms_lang` (`id_cms`, `id_lang`, `meta_title`, `meta_description`, `meta_keywords`, `content`, `link_rewrite`) VALUES
+(1, 6, 'Delivery', 'Our terms and conditions of delivery', 'conditions, delivery, delay, shipment, pack', '<h2>Shipments and returns</h2><h3>Your pack shipment</h3><p>Packages are generally dispatched within 2 days after receipt of payment and are shipped via UPS with tracking and drop-off without signature. If you prefer delivery by UPS Extra with required signature, an additional cost will be applied, so please contact us before choosing this method. Whichever shipment choice you make, we will provide you with a link to track your package online.</p><p>Shipping fees include handling and packing fees as well as postage costs. Handling fees are fixed, whereas transport fees vary according to total weight of the shipment. We advise you to group your items in one order. We cannot group two distinct orders placed separately, and shipping fees will apply to each of them. Your package will be dispatched at your own risk, but special care is taken to protect fragile objects.<br /><br />Boxes are amply sized and your items are well-protected.</p>', 'delivery'),
+(2, 6, 'Legal Notice', 'Legal notice', 'notice, legal, credits', '<h2>Legal</h2><h3>Credits</h3><p>Concept and production:</p><p>This Web site was created using <a href="http://www.prestashop.com">PrestaShop</a>&trade; open-source software.</p>', 'legal-notice'),
+(3, 6, 'Terms and conditions of use', 'Our terms and conditions of use', 'conditions, terms, use, sell', '<h2>Your terms and conditions of use</h2><h3>Rule 1</h3><p>Here is the rule 1 content</p>\r\n<h3>Rule 2</h3><p>Here is the rule 2 content</p>\r\n<h3>Rule 3</h3><p>Here is the rule 3 content</p>', 'terms-and-conditions-of-use'),
+(4, 6, 'About us', 'Learn more about us', 'about us, informations', '<h2>About us</h2>\r\n<h3>Our company</h3><p>Our company</p>\r\n<h3>Our team</h3><p>Our team</p>\r\n<h3>Informations</h3><p>Informations</p>', 'about-us'),
+(5, 6, 'Secure payment', 'Our secure payment mean', 'secure payment, ssl, visa, mastercard, paypal', '<h2>Secure payment</h2>\r\n<h3>Our secure payment</h3><p>With SSL</p>\r\n<h3>Using Visa/Mastercard/Paypal</h3><p>About this services</p>', 'secure-payment'),
+(6, 6, 'Privacy policy', 'Privacy policy', 'Privacy policy', '<h2>Privacy policy</h2>\r\n<p>Privacy policy</p>', 'privacy-policy'),
+(7, 6, 'Right of withdrawal', 'Right of withdrawal', 'Right of withdrawal', '<h2>Right of withdrawal</h2>\r\n<p>Right of withdrawal</p>', 'right-of-withdrawal');
+
+INSERT IGNORE INTO `PREFIX_editorial_lang` (`id_editorial`, `id_lang`, `body_title`, `body_subheading`, `body_paragraph`, `body_logo_subheading`) VALUES
+(1, 6, 'Lorem ipsum dolor sit amet', 'Consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua', '<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>', 'Excepteur sint prestashop cupidatat non proident');
+
+INSERT IGNORE INTO `PREFIX_feature_lang` (`id_feature`, `id_lang`, `name`) VALUES
+(3, 6, 'Depth'),
+(5, 6, 'Headphone'),
+(1, 6, 'Height'),
+(4, 6, 'Weight'),
+(2, 6, 'Width');
+
+INSERT IGNORE INTO `PREFIX_feature_value_lang` (`id_feature_value`, `id_lang`, `value`) VALUES
+(9, 6, 'Jack stereo'),
+(10, 6, 'Mini-jack stereo'),
+(11, 6, '2.75 in'),
+(12, 6, '2.06 in'),
+(13, 6, '49.2 g'),
+(14, 6, '0.26 in'),
+(15, 6, '1.07 in'),
+(16, 6, '1.62 in'),
+(17, 6, '15.5 g'),
+(18, 6, '0.41 in (clip included)'),
+(23, 6, '4.33 in'),
+(24, 6, '2.76 in'),
+(25, 6, '120g'),
+(26, 6, '0.31 in');
+
+INSERT IGNORE INTO `PREFIX_image_lang` (`id_image`, `id_lang`, `legend`) VALUES
+(10, 6, 'luxury-cover-for-ipod-video'),
+(11, 6, 'cover'),
+(12, 6, 'myglove-ipod-nano'),
+(13, 6, 'myglove-ipod-nano'),
+(14, 6, 'myglove-ipod-nano'),
+(15, 6, 'MacBook Air'),
+(16, 6, 'MacBook Air'),
+(17, 6, 'MacBook Air'),
+(18, 6, 'MacBook Air'),
+(19, 6, 'MacBook Air'),
+(20, 6, ' MacBook Air SuperDrive'),
+(24, 6, 'iPod touch'),
+(26, 6, 'iPod touch'),
+(27, 6, 'iPod touch'),
+(29, 6, 'iPod touch'),
+(30, 6, 'iPod touch'),
+(32, 6, 'iPod touch'),
+(33, 6, 'housse-portefeuille-en-cuir'),
+(36, 6, 'Shure SE210 Sound-Isolating Earphones for iPod and iPhone'),
+(37, 6, 'iPod Nano'),
+(38, 6, 'iPod Nano'),
+(39, 6, 'iPod Nano'),
+(40, 6, 'iPod Nano'),
+(41, 6, 'iPod Nano'),
+(42, 6, 'iPod Nano'),
+(44, 6, 'iPod Nano'),
+(45, 6, 'iPod Nano'),
+(46, 6, 'iPod shuffle'),
+(47, 6, 'iPod shuffle'),
+(48, 6, 'iPod shuffle'),
+(49, 6, 'iPod shuffle');
+
+INSERT IGNORE INTO `PREFIX_product_lang` (`id_product`, `id_lang`, `description`, `description_short`, `link_rewrite`, `meta_description`, `meta_keywords`, `meta_title`, `name`, `available_now`, `available_later`) VALUES
+(1, 6, '<p><strong><span style="font-size: small;">Curved ahead of the curve.</span></strong></p>\r\n<p>For those about to rock, we give you nine amazing colors. But that''s only part of the story. Feel the curved, all-aluminum and glass design and you won''t want to put iPod nano down.</p>\r\n<p><strong><span style="font-size: small;">Great looks. And brains, too.</span></strong></p>\r\n<p>The new Genius feature turns iPod nano into your own highly intelligent, personal DJ. It creates playlists by finding songs in your library that go great together.</p>\r\n<p><strong><span style="font-size: small;">Made to move with your moves.</span></strong></p>\r\n<p>The accelerometer comes to iPod nano. Give it a shake to shuffle your music. Turn it sideways to view Cover Flow. And play games designed with your moves in mind.</p>', '<p>New design. New features. Now in 8GB and 16GB. iPod nano rocks like never before.</p>', 'ipod-nano', '', '', '', 'iPod Nano', 'In stock', ''),
+(2, 6, '<p><span style="font-size: small;"><strong>Instant attachment.</strong></span></p>\r\n<p>Wear up to 500 songs on your sleeve. Or your belt. Or your gym shorts. iPod shuffle is a badge of musical devotion. Now in new, more brilliant colors.</p>\r\n<p><span style="font-size: small;"><strong>Feed your iPod shuffle.</strong></span></p>\r\n<p>iTunes is your entertainment superstore. It’s your ultra-organized music collection and jukebox. And it’s how you load up your iPod shuffle in one click.</p>\r\n<p><span style="font-size: small;"><strong>Beauty and the beat.</strong></span></p>\r\n<p>Intensely colorful anodized aluminum complements the simple design of iPod shuffle. Now in blue, green, pink, red, and original silver.</p>', '<p>iPod shuffle, the world’s most wearable music player, now clips on in more vibrant blue, green, pink, and red.</p>', 'ipod-shuffle', '', '', '', 'iPod shuffle', 'In stock', ''),
+(5, 6, '<p>MacBook Air is nearly as thin as your index finger. Practically every detail that could be streamlined has been. Yet it still has a 13.3-inch widescreen LED display, full-size keyboard, and large multi-touch trackpad. It’s incomparably portable without the usual ultraportable screen and keyboard compromises.</p><p>The incredible thinness of MacBook Air is the result of numerous size- and weight-shaving innovations. From a slimmer hard drive to strategically hidden I/O ports to a lower-profile battery, everything has been considered and reconsidered with thinness in mind.</p><p>MacBook Air is designed and engineered to take full advantage of the wireless world. A world in which 802.11n Wi-Fi is now so fast and so available, people are truly living untethered — buying and renting movies online, downloading software, and sharing and storing files on the web. </p>', 'MacBook Air is ultrathin, ultraportable, and ultra unlike anything else. But you don’t lose inches and pounds overnight. It’s the result of rethinking conventions. Of multiple wireless innovations. And of breakthrough design. With MacBook Air, mobile computing suddenly has a new standard.', 'macbook-air', '', '', '', 'MacBook Air', '', NULL),
+(6, 6, 'Every MacBook has a larger hard drive, up to 250GB, to store growing media collections and valuable data.<br /><br />The 2.4GHz MacBook models now include 2GB of memory standard — perfect for running more of your favorite applications smoothly.', 'MacBook makes it easy to hit the road thanks to its tough polycarbonate case, built-in wireless technologies, and innovative MagSafe Power Adapter that releases automatically if someone accidentally trips on the cord.', 'macbook', '', '', '', 'MacBook', '', NULL),
+(7, 6, '<h3>Five new hands-on applications</h3>\r\n<p>View rich HTML email with photos as well as PDF, Word, and Excel attachments. Get maps, directions, and real-time traffic information. Take notes and read stock and weather reports.</p>\r\n<h3>Touch your music, movies, and more</h3>\r\n<p>The revolutionary Multi-Touch technology built into the gorgeous 3.5-inch display lets you pinch, zoom, scroll, and flick with your fingers.</p>\r\n<h3>Internet in your pocket</h3>\r\n<p>With the Safari web browser, see websites the way they were designed to be seen and zoom in and out with a tap.<sup>2</sup> And add Web Clips to your Home screen for quick access to favorite sites.</p>\r\n<h3>What''s in the box</h3>\r\n<ul>\r\n<li><span></span>iPod touch</li>\r\n<li><span></span>Earphones</li>\r\n<li><span></span>USB 2.0 cable</li>\r\n<li><span></span>Dock adapter</li>\r\n<li><span></span>Polishing cloth</li>\r\n<li><span></span>Stand</li>\r\n<li><span></span>Quick Start guide</li>\r\n</ul>', '<ul>\r\n<li>Revolutionary Multi-Touch interface</li>\r\n<li>3.5-inch widescreen color display</li>\r\n<li>Wi-Fi (802.11b/g)</li>\r\n<li>8 mm thin</li>\r\n<li>Safari, YouTube, Mail, Stocks, Weather, Notes, iTunes Wi-Fi Music Store, Maps</li>\r\n</ul>', 'ipod-touch', '', '', '', 'iPod touch', '', NULL),
+(8, 6, '<p>Lorem ipsum</p>', '<p>Lorem ipsum</p>', 'belkin-leather-folio-for-ipod-nano-black-chocolate', '', '', '', 'Belkin Leather Folio for iPod nano - Black / Chocolate', '', NULL),
+(9, 6, '<div class="product-overview-full">Using Hi-Definition MicroSpeakers to deliver full-range audio, the ergonomic and lightweight design of the SE210 earphones is ideal for premium on-the-go listening on your iPod or iPhone. They offer the most accurate audio reproduction from both portable and home stereo audio sources--for the ultimate in precision highs and rich low end. In addition, the flexible design allows you to choose the most comfortable fit from a variety of wearing positions. <br /> <br /> <strong>Features </strong> <br /> \r\n<ul>\r\n<li>Sound-isolating design </li>\r\n<li> Hi-Definition MicroSpeaker with a single balanced armature driver </li>\r\n<li> Detachable, modular cable so you can make the cable longer or shorter depending on your activity </li>\r\n<li> Connector compatible with earphone ports on both iPod and iPhone </li>\r\n</ul>\r\n<strong>Specifications </strong><br /> \r\n<ul>\r\n<li>Speaker type: Hi-Definition MicroSpeaker </li>\r\n<li> Frequency range: 25Hz-18.5kHz </li>\r\n<li> Impedance (1kHz): 26 Ohms </li>\r\n<li> Sensitivity (1mW): 114 dB SPL/mW </li>\r\n<li> Cable length (with extension): 18.0 in./45.0 cm (54.0 in./137.1 cm) </li>\r\n</ul>\r\n<strong>In the box</strong><br /> \r\n<ul>\r\n<li>Shure SE210 earphones </li>\r\n<li> Extension cable (36.0 in./91.4 cm) </li>\r\n<li> Three pairs foam earpiece sleeves (small, medium, large) </li>\r\n<li> Three pairs soft flex earpiece sleeves (small, medium, large) </li>\r\n<li> One pair triple-flange earpiece sleeves </li>\r\n<li> Carrying case </li>\r\n</ul>\r\nWarranty<br /> Two-year limited <br />(For details, please visit <br />www.shure.com/PersonalAudio/CustomerSupport/ProductReturnsAndWarranty/index.htm.) <br /><br /> Mfr. Part No.: SE210-A-EFS <br /><br />Note: Products sold through this website that do not bear the Apple Brand name are serviced and supported exclusively by their manufacturers in accordance with terms and conditions packaged with the products. Apple''s Limited Warranty does not apply to products that are not Apple-branded, even if packaged or sold with Apple products. Please contact the manufacturer directly for technical support and customer service.</div>', '<p>Evolved from personal monitor technology road-tested by pro musicians and perfected by Shure engineers, the lightweight and stylish SE210 delivers full-range audio that''s free from outside noise.</p>', 'ecouteurs-a-isolation-sonore-shure-se210-blanc', '', '', '', 'Shure SE210 Sound-Isolating Earphones for iPod and iPhone', '', NULL);
+
+INSERT IGNORE INTO `PREFIX_scene_lang` (`id_scene`, `id_lang`, `name`) VALUES
+(1, 6, 'The iPods Nano'),
+(2, 6, 'The iPods'),
+(3, 6, 'The MacBooks');
+
+UPDATE `PREFIX_cms_lang` SET `title`=`meta_title`, `description_short`=`meta_description`;
+UPDATE `PREFIX_cms` SET `date_add`=NOW(), `date_upd`=NOW();
+INSERT INTO `PREFIX_cms_category_cms` (`id_cms_category`, `id_cms`) SELECT `id_cms_category`, `id_cms` FROM `PREFIX_cms`;

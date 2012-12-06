@@ -1,0 +1,31 @@
+<?php
+
+global $_MODULE;
+$_MODULE = array();
+$_MODULE['<{newsletter}prestashop>newsletter_ffb7e666a70151215b4c55c6268d7d72'] = 'Рассылка';
+$_MODULE['<{newsletter}prestashop>newsletter_804a924e464fd21ed92f820224c4091d'] = 'Генерирует для рассылки файл .CSV';
+$_MODULE['<{newsletter}prestashop>newsletter_c3987e4cac14a8456515f0d200da04ee'] = 'Все страны';
+$_MODULE['<{newsletter}prestashop>newsletter_fa01fd956e87307bce4c90a0de9b0437'] = 'Страна покупателя';
+$_MODULE['<{newsletter}prestashop>newsletter_c0859b0a5241dff468da2a9a93c3284f'] = 'Применить к стране покупателя фильтр.';
+$_MODULE['<{newsletter}prestashop>newsletter_2198f293f5e1e95dddeff819fbca0975'] = 'Рассылка подписчикам';
+$_MODULE['<{newsletter}prestashop>newsletter_99006a61d48499231e1be92241cf772a'] = 'Отфильтровать подписчиков на новости.';
+$_MODULE['<{newsletter}prestashop>newsletter_7e3a51a56ddd2846e21c33f05e0aea6f'] = 'Все покупатели';
+$_MODULE['<{newsletter}prestashop>newsletter_39f7a3e2b56e9bfd753ba6325533a127'] = 'Подписчики';
+$_MODULE['<{newsletter}prestashop>newsletter_011d8c5d94f729f013963d856cd78745'] = 'Не подписались';
+$_MODULE['<{newsletter}prestashop>newsletter_793ee192a9124cd6f529460eef17d3e5'] = 'Исключенные подписчики';
+$_MODULE['<{newsletter}prestashop>newsletter_7b15c043d66fecc45c8752592aa38e38'] = 'Фильтр по исключенным подписчикам';
+$_MODULE['<{newsletter}prestashop>newsletter_d526d090aa22242fa5f6acfccc6bd007'] = '.CSV файл был успешно экспортирован.';
+$_MODULE['<{newsletter}prestashop>newsletter_55caa4828d4e935c2ba9f1558f1c4edd'] = 'покупателей найдено';
+$_MODULE['<{newsletter}prestashop>newsletter_48e3d5f66961b621c78f709afcd7d437'] = 'Загрузить файл';
+$_MODULE['<{newsletter}prestashop>newsletter_faa1115fbab933e7178ee43ce1590977'] = 'ВНИМАНИЕ:. Если это открыть CSV файл в Excel, не забудьте выбрать кодировку UTF-8, иначе вы можете увидеть странные символы.';
+$_MODULE['<{newsletter}prestashop>newsletter_81573e0ea79138f02fd2cee94786d7e9'] = 'Ошибка: не могу записать';
+$_MODULE['<{newsletter}prestashop>newsletter_9e08d8afdd018f1f04aebe72384e352b'] = 'Этот модуль делится на 2 раздела: ';
+$_MODULE['<{newsletter}prestashop>newsletter_0abc3bbea852c63f540590c3f92b07eb'] = 'Люди, которые указали на их адрес на форме подписки на новостную рассылку через домашнюю страницу. ';
+$_MODULE['<{newsletter}prestashop>newsletter_27d1ec406fd2baf49d03f81a4bb41122'] = 'Это список адресов электронной почты лиц, которые приходили в магазин, которые не становятся клиентами, но подписались на рассылку новостей. Используйте \"Экспорт подписчиков\" ниже для генерации .CSV файла на основе абонентов \"Блока Рассылки\".';
+$_MODULE['<{newsletter}prestashop>newsletter_e1b67fd4cdf446eec12c8834b83b9a3a'] = 'Клиенты, которые проверили \"да\", чтобы быть включенными в список рассылки новостной рассылки. ';
+$_MODULE['<{newsletter}prestashop>newsletter_80ca8d4a3fd9e0c3f19bab2a2ce35c6d'] = 'Этот список может фильтроваться согласно типу клиента ';
+$_MODULE['<{newsletter}prestashop>newsletter_b192ab83a19105bbf1e2d1fab548249a'] = 'Экспорт подписчиков рассылки';
+$_MODULE['<{newsletter}prestashop>newsletter_a60401e616125189d78605b2ddd7ff45'] = 'Сгенерировать файл .CSV основанный на данных из блока новостей.';
+$_MODULE['<{newsletter}prestashop>newsletter_dbb392a2dc9b38722e69f6032faea73e'] = 'Экспорт файла .CSV';
+$_MODULE['<{newsletter}prestashop>newsletter_4713ef5f2d6fc1e8f088c850e696a04b'] = 'Экспорт покупателей';
+$_MODULE['<{newsletter}prestashop>newsletter_2f5a2bf1a10d25a408a8bab945e4dd3c'] = 'Сгенерировать файл формата CSV из данных покупателей';

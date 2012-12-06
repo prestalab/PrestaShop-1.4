@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -73,14 +72,36 @@ class BlockSearch extends Module
 
 	public function hookRightColumn($params)
 	{
-		$this->_hookCommon($params);
-		return $this->display(__FILE__, 'blocksearch.tpl');
+		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blocksearch|'.$id_lang;
+
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blocksearch.tpl', $smartyCacheId))
+		{
+			$this->_hookCommon($params);
+		}
+		$display = $this->display(__FILE__, 'blocksearch.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	public function hookTop($params)
 	{
-		$this->_hookCommon($params);
-		return $this->display(__FILE__, 'blocksearch-top.tpl');
+		global $smarty;
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blocksearch-top|'.$id_lang;
+
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blocksearch-top.tpl', $smartyCacheId))
+		{
+			$this->_hookCommon($params);
+		}
+		$display = $this->display(__FILE__, 'blocksearch-top.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	/**

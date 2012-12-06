@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -139,7 +138,28 @@ class CategoryCore extends ObjectModel
 	public function getTranslationsFieldsChild()
 	{
 		parent::validateFieldsLang();
-		return parent::getTranslationsFields(array('name', 'description', 'link_rewrite', 'meta_title', 'meta_keywords', 'meta_description'));
+		$fieldsArray = array('name', 'link_rewrite', 'meta_title', 'meta_keywords', 'meta_description');
+		$fields = array();
+		$languages = Language::getLanguages(false);
+		$defaultLanguage = (int)(_PS_LANG_DEFAULT_);
+		foreach ($languages as $language)
+		{
+			$fields[$language['id_lang']]['id_lang'] = (int)($language['id_lang']);
+			$fields[$language['id_lang']][$this->identifier] = (int)($this->id);
+			$fields[$language['id_lang']]['description'] = (isset($this->description[$language['id_lang']])) ? pSQL($this->description[$language['id_lang']], true) : '';
+			foreach ($fieldsArray as $field)
+			{
+				if (!Validate::isTableOrIdentifier($field))
+					die(Tools::displayError());
+				if (isset($this->{$field}[$language['id_lang']]) AND !empty($this->{$field}[$language['id_lang']]))
+					$fields[$language['id_lang']][$field] = pSQL($this->{$field}[$language['id_lang']]);
+				elseif (in_array($field, $this->fieldsRequiredLang))
+					$fields[$language['id_lang']][$field] = pSQL($this->{$field}[$defaultLanguage]);
+				else
+					$fields[$language['id_lang']][$field] = '';
+			}
+		}
+		return $fields;
 	}
 
 	public	function add($autodate = true, $nullValues = false)

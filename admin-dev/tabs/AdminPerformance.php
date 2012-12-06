@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2011 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -43,6 +42,7 @@ class AdminPerformance extends AdminTab
 		{
 			if ($this->tabAccess['edit'] === '1')
 			{
+				Configuration::updateValue('PL_SMARTY_CACHE_REPLACE', Tools::getValue('smarty_cache_replace', 0));
 				$settings = file_get_contents(dirname(__FILE__).'/../../config/settings.inc.php');
 				if (!Tools::getValue('active'))
 					$cache_active = 0;
@@ -52,10 +52,14 @@ class AdminPerformance extends AdminTab
 					$this->_errors[] = Tools::displayError('Caching system is missing');
 				else
 					$settings = preg_replace('/define\(\'_PS_CACHING_SYSTEM_\', \'([a-z0-9=\/+-_]+)\'\);/Ui', 'define(\'_PS_CACHING_SYSTEM_\', \''.$caching_system.'\');', $settings);
-				if ($cache_active AND $caching_system == 'MCached' AND !extension_loaded('memcache'))
+				if ($cache_active AND $caching_system == 'CacheMemcache' AND !extension_loaded('memcache'))
 					$this->_errors[] = Tools::displayError('To use Memcached, you must install the Memcache PECL extension on your server.').' <a href="http://www.php.net/manual/en/memcache.installation.php">http://www.php.net/manual/en/memcache.installation.php</a>';
 				elseif ($cache_active AND $caching_system == 'CacheFS' AND !is_writable(_PS_CACHEFS_DIRECTORY_))
 					$this->_errors[] = Tools::displayError('To use CacheFS the directory').' '.realpath(_PS_CACHEFS_DIRECTORY_).' '.Tools::displayError('must be writable');
+				elseif ($cache_active AND $caching_system == 'CacheApc' AND !extension_loaded('apc'))
+					$this->_errors[] = Tools::displayError('To use APC, you must install the APC extension on your server.');
+				elseif ($cache_active AND $caching_system == 'CacheXCache' AND !extension_loaded('xcache'))
+					$this->_errors[] = Tools::displayError('To use XCache, you must install the XCache extension on your server.');
 
 				if ($caching_system == 'CacheFS' && $cache_active)
 				{
@@ -68,7 +72,11 @@ class AdminPerformance extends AdminTab
 						Configuration::updateValue('PS_CACHEFS_DIRECTORY_DEPTH', (int)$depth);
 					}
 				}
-				elseif($caching_system == 'MCached' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'MCached')
+				elseif($caching_system == 'CacheMemcache' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheMemcache')
+					Cache::getInstance()->flush();
+				elseif($caching_system == 'CacheAPC' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheApc')
+					Cache::getInstance()->flush();
+				elseif($caching_system == 'CacheXCache' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheXCache')
 					Cache::getInstance()->flush();
 				if (!sizeof($this->_errors))
 				{
@@ -94,7 +102,7 @@ class AdminPerformance extends AdminTab
 					$this->_errors[] = Tools::displayError('Memcached weight is missing');
 				if (!sizeof($this->_errors))
 				{
-					if (MCached::addServer(pSQL(Tools::getValue('memcachedIp')), (int)Tools::getValue('memcachedPort'), (int)Tools::getValue('memcachedWeight')))
+					if (CacheMemcache::addServer(pSQL(Tools::getValue('memcachedIp')), (int)Tools::getValue('memcachedPort'), (int)Tools::getValue('memcachedWeight')))
 						Tools::redirectAdmin($currentIndex.'&token='.Tools::getValue('token').'&conf=4');
 					else
 						$this->_errors[] = Tools::displayError('Cannot add Memcached server');
@@ -107,7 +115,7 @@ class AdminPerformance extends AdminTab
 		{
 			if ($this->tabAccess['add'] === '1')
 			{
-				if (MCached::deleteServer((int)Tools::getValue('deleteMemcachedServer')))
+				if (CacheMemcache::deleteServer((int)Tools::getValue('deleteMemcachedServer')))
 					Tools::redirectAdmin($currentIndex.'&token='.Tools::getValue('token').'&conf=4');
 				else
 					$this->_errors[] = Tools::displayError('Error in deleting Memcached server');
@@ -163,6 +171,7 @@ class AdminPerformance extends AdminTab
 			{
 				if (!Configuration::updateValue('PS_CSS_THEME_CACHE', (int)Tools::getValue('PS_CSS_THEME_CACHE')) ||
 					!Configuration::updateValue('PS_JS_THEME_CACHE', (int)Tools::getValue('PS_JS_THEME_CACHE')) ||
+					!Configuration::updateValue('PL_JQUERY', (int)Tools::getValue('PL_JQUERY')) ||
 					!Configuration::updateValue('PS_HTML_THEME_COMPRESSION', (int)Tools::getValue('PS_HTML_THEME_COMPRESSION')) ||
 					!Configuration::updateValue('PS_JS_HTML_THEME_COMPRESSION', (int)Tools::getValue('PS_JS_HTML_THEME_COMPRESSION')))
 					$this->_errors[] = Tools::displayError('Unknown error.');
@@ -229,6 +238,10 @@ class AdminPerformance extends AdminTab
 		$warnings = array();
 		if (!extension_loaded('memcache'))
 			$warnings[] = $this->l('To use Memcached, you must install the Memcache PECL extension on your server.').' <a href="http://www.php.net/manual/en/memcache.installation.php">http://www.php.net/manual/en/memcache.installation.php</a>';
+		if (!extension_loaded('apc'))
+			$warnings[] = $this->l('To use APC, you must install the APC extension on your server.');
+		if (!extension_loaded('xcache'))
+			$warnings[] = $this->l('To use Xcache, you must install the Xcache extension on your server.');
 		if (!is_writable(_PS_CACHEFS_DIRECTORY_))
 			$warnings[] = $this->l('To use CacheFS the directory').' '.realpath(_PS_CACHEFS_DIRECTORY_).' '.$this->l('must be writable');
 
@@ -248,15 +261,25 @@ class AdminPerformance extends AdminTab
 							});
 							function showMemcached()
 							{
-								if ($(\'#caching_system option:selected\').val() == \'MCached\')
+								if ($(\'#caching_system option:selected\').val() == \'CacheMemcache\')
 								{
 									$(\'#memcachedServers\').show();
 									$(\'#directory_depth\').hide();
 								}
-								else
+								if ($(\'#caching_system option:selected\').val() == \'CacheFS\')
 								{
 									$(\'#memcachedServers\').hide();
 									$(\'#directory_depth\').show();
+								}
+								if ($(\'#caching_system option:selected\').val() == \'CacheApc\')
+								{
+									$(\'#memcachedServers\').hide();
+									$(\'#directory_depth\').hide();
+								}
+								if ($(\'#caching_system option:selected\').val() == \'CacheXcache\')
+								{
+									$(\'#memcachedServers\').hide();
+									$(\'#directory_depth\').hide();
 								}
 							}
 							$(\'#addMemcachedServer\').click(function() {
@@ -316,8 +339,11 @@ class AdminPerformance extends AdminTab
 
 				<label>'.$this->l('Minify HTML').' </label>
 				<div class="margin-form">
-					<input type="radio" value="1" name="PS_HTML_THEME_COMPRESSION" id="PS_HTML_THEME_COMPRESSION_1" '.(Configuration::get('PS_HTML_THEME_COMPRESSION') ? 'checked="checked"' : '').' />
-					<label class="t" for="PS_HTML_THEME_COMPRESSION_1">'.$this->l('Minify HTML after "smarty compile" execution.').'</label>
+					<input type="radio" value="1" name="PS_HTML_THEME_COMPRESSION" id="PS_HTML_THEME_COMPRESSION_1" '.(Configuration::get('PS_HTML_THEME_COMPRESSION')==1 ? 'checked="checked"' : '').' />
+					<label class="t" for="PS_HTML_THEME_COMPRESSION_1">'.$this->l('Minify HTML after "smarty compile" execution (as output filter). Maximum compression.').'</label>
+					<br />
+					<input type="radio" value="2" name="PS_HTML_THEME_COMPRESSION" id="PS_HTML_THEME_COMPRESSION_2" '.(Configuration::get('PS_HTML_THEME_COMPRESSION')==2 ? 'checked="checked"' : '').' />
+					<label class="t" for="PS_HTML_THEME_COMPRESSION_2">'.$this->l('Minify HTML before "smarty compile" execution (as pre filter). Maximum performance.').'</label>
 					<br />
 					<input type="radio" value="0" name="PS_HTML_THEME_COMPRESSION" id="PS_HTML_THEME_COMPRESSION_0" '.(Configuration::get('PS_HTML_THEME_COMPRESSION') ? '' : 'checked="checked"').' />
 					<label class="t" for="PS_HTML_THEME_COMPRESSION_0">'.$this->l('Keep HTML as original').'</label>
@@ -325,11 +351,26 @@ class AdminPerformance extends AdminTab
 
 				<label>'.$this->l('Compress inline JavaScript in HTML').' </label>
 				<div class="margin-form">
-					<input type="radio" value="1" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_1" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION') ? 'checked="checked"' : '').' />
-					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_1">'.$this->l('Compress inline JavaScript in HTML after "smarty compile" execution').'</label>
+					<input type="radio" value="1" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_1" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION')==1 ? 'checked="checked"' : '').' />
+					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_1">'.$this->l('Compress inline JavaScript in HTML after "smarty compile" execution (as output filter). Maximum compression').'</label>
+					<br />
+					<input type="radio" value="2" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_2" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION')==2 ? 'checked="checked"' : '').' />
+					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_2">'.$this->l('Compress inline JavaScript in HTML before "smarty compile" execution (as pre filter). Maximum performance').'</label>
 					<br />
 					<input type="radio" value="0" name="PS_JS_HTML_THEME_COMPRESSION" id="PS_JS_HTML_THEME_COMPRESSION_0" '.(Configuration::get('PS_JS_HTML_THEME_COMPRESSION') ? '' : 'checked="checked"').' />
 					<label class="t" for="PS_JS_HTML_THEME_COMPRESSION_0">'.$this->l('Keep inline JavaScript in HTML as original').'</label>
+				</div>
+
+				<label>'.$this->l('Jquery from CDN').' </label>
+				<div class="margin-form">
+					<input type="radio" value="1" name="PL_JQUERY" id="PL_JQUERY_1" '.(Configuration::get('PL_JQUERY')==1 ? 'checked="checked"' : '').' />
+					<label class="t" for="PL_JQUERY_1">'.$this->l('From Google').'</label>
+					<br />
+					<input type="radio" value="2" name="PL_JQUERY" id="PL_JQUERY_2" '.(Configuration::get('PL_JQUERY')==2 ? 'checked="checked"' : '').' />
+					<label class="t" for="PL_JQUERY_2">'.$this->l('From Yandex').'</label>
+					<br />
+					<input type="radio" value="0" name="PL_JQUERY" id="PL_JQUERY_0" '.(Configuration::get('PL_JQUERY') ? '' : 'checked="checked"').' />
+					<label class="t" for="PL_JQUERY_0">'.$this->l('From local storage').'</label>
 				</div>
 
 				<div class="margin-form">
@@ -417,11 +458,20 @@ class AdminPerformance extends AdminTab
 						<label class="t" for="active_off"> <img src="../img/admin/disabled.gif" alt="'.$this->l('Disabled').'" title="'.$this->l('Disabled').'" /></label>
 						<p>'.$this->l('Enable or disable caching system').'</p>
 					</div>
+					<label>'.$this->l('Cache for smarty:').' </label>
+					<div class="margin-form">
+						<input type="radio" name="smarty_cache_replace" id="smarty_cache_replace_1" value="1" '.(Configuration::get('PL_SMARTY_CACHE_REPLACE') ? 'checked="checked"' : '').' /> <label class="t"><img src="../img/admin/enabled.gif" alt="" /> '.$this->l('Yes').'</label>
+						<input type="radio" name="smarty_cache_replace" id="smarty_cache_replace_0" value="0" '.(!Configuration::get('PL_SMARTY_CACHE_REPLACE') ? 'checked="checked"' : '').' /> <label class="t"><img src="../img/admin/disabled.gif" alt="" /> '.$this->l('No').'</label>
+						<p>'.$this->l('Selected caching system will be used instead default smarty caching.').'</p>
+					</div>
 					<label>'.$this->l('Caching system:').' </label>
 					<div class="margin-form">
 						<select name="caching_system" id="caching_system">
-							<option value="MCached" '.(_PS_CACHING_SYSTEM_ == 'MCached' ? 'selected="selected"' : '' ).'>'.$this->l('Memcached').'</option>
+							<option value="CacheMemcache" '.(_PS_CACHING_SYSTEM_ == 'MCached' ? 'selected="selected"' : '' ).'>'.$this->l('Memcached').'</option>
 							<option value="CacheFS" '.(_PS_CACHING_SYSTEM_ == 'CacheFS' ? 'selected="selected"' : '' ).'>'.$this->l('File System').'</option>
+							<option value="CacheApc" '.(_PS_CACHING_SYSTEM_ == 'CacheApc' ? 'selected="selected"' : '' ).'>'.$this->l('APC').'</option>
+							<option value="CacheXcache" '.(_PS_CACHING_SYSTEM_ == 'CacheXcache' ? 'selected="selected"' : '' ).'>'.$this->l('XCache').'</option>
+
 						</select>
 					</div>
 					<div id="directory_depth">
@@ -458,7 +508,7 @@ class AdminPerformance extends AdminTab
 							</div>
 						</form>
 					</div>';
-			$servers = MCached::getMemcachedServers();
+			$servers = CacheMemcache::getMemcachedServers();
 			if ($servers)
 			{
 				echo '<div class="margin-form">

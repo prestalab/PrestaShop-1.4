@@ -138,7 +138,7 @@ class JSMin {
 
     if ($c === null) {
       if ($this->inputIndex < $this->inputLength) {
-        $c = substr($this->input, $this->inputIndex, 1);
+        $c = $this->input[$this->inputIndex];
         $this->inputIndex += 1;
       } else {
         $c = null;

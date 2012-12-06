@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -57,6 +56,7 @@ class BlockSpecials extends Module
 		$output = '<h2>'.$this->displayName.'</h2>';
 		if (Tools::isSubmit('submitSpecials'))
 		{
+			$this->_clearCache(__FILE__, 'blockspecials.tpl');
 			Configuration::updateValue('PS_BLOCK_SPECIALS_DISPLAY', (int)(Tools::getValue('always_display')));
 			$output .= '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="'.$this->l('Confirmation').'" />'.$this->l('Settings updated').'</div>';
 		}
@@ -88,15 +88,25 @@ class BlockSpecials extends Module
 			return ;
 
 		global $smarty;
-		if (!$special = Product::getRandomSpecial((int)($params['cookie']->id_lang)) AND !Configuration::get('PS_BLOCK_SPECIALS_DISPLAY'))
-			return;
-		$smarty->assign(array(
-			'special' => $special,
-			'priceWithoutReduction_tax_excl' => Tools::ps_round($special['price_without_reduction'], 2),
-			'mediumSize' => Image::getSize('medium')
-		));
+		$id_lang = (int)($params['cookie']->id_lang);
+		$id_currency = (int)($params['cookie']->id_currency);
+		$smartyCacheId = 'blockspecials|'.$id_lang.'-'.$id_currency;
 
-		return $this->display(__FILE__, 'blockspecials.tpl');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_SHORT'); // 24 Hours
+		Tools::enableCache();
+		if (!$this->isCached('blockspecials.tpl', $smartyCacheId))
+		{
+			if (!$special = Product::getRandomSpecial((int)($params['cookie']->id_lang)) AND !Configuration::get('PS_BLOCK_SPECIALS_DISPLAY'))
+				return;
+			$smarty->assign(array(
+				'special' => $special,
+				'priceWithoutReduction_tax_excl' => Tools::ps_round($special['price_without_reduction'], 2),
+				'mediumSize' => Image::getSize('medium')
+			));
+		}
+		$display = $this->display(__FILE__, 'blockspecials.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	public function hookLeftColumn($params)

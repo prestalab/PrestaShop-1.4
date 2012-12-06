@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -412,6 +411,18 @@ class ToolsCore
 		else
 			return false;
 
+		if ($no_utf8)
+		{
+			$replace = false;
+			$signs=array('€', '£', '¥');
+			foreach($signs as $sign)
+				if(strpos($c_char, $sign) !== false)
+					$replace = true;
+			if($replace)
+				$c_char = str_replace($signs, array(chr(128), chr(163), chr(165)), $c_char);
+			else
+				$c_char = Tools::iconv('utf-8', 'cp1251', $c_char);
+		}
 		$blank = ($c_blank ? ' ' : '');
 		$ret = 0;
 		if (($isNegative = ($price < 0)))
@@ -438,8 +449,6 @@ class ToolsCore
 		}
 		if ($isNegative)
 			$ret = '-'.$ret;
-		if ($no_utf8)
-			return str_replace(array('€', '£', '¥'), array(chr(128), chr(163), chr(165)), $ret);
 		return $ret;
 	}
 
@@ -1000,6 +1009,14 @@ class ToolsCore
 	{
 		if (_PS_MB_STRING_)
 			$str = mb_strtolower($str, 'utf-8');
+
+		//fix cyrilic SEO URL
+		if (preg_match('/[А-Яа-я]+/', $str))
+		{
+			$cyr = array('а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я');
+			$lat = array('a', 'b', 'v', 'g', 'd', 'e', 'e', 'j', 'z', 'i', 'y', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'f', 'h', 'c', 'ch', 'sh', 'shh', '', 'y', '', 'e', 'u', 'ja');
+			$str = str_replace($cyr, $lat, $str);
+		}
 
 		// Remove all non-whitelist chars.
 		$str = preg_replace(array('/[^a-zA-Z0-9\s\'\:\/\[\]-]/', '/[\s\'\:\/\[\]-]+/', '/[ ]/', '/[\/]/'),
@@ -1713,7 +1730,7 @@ class ToolsCore
 
 		// rebuild the original js_files array
 		$url = str_replace(_PS_ROOT_DIR_.'/', __PS_BASE_URI__, $compressed_js_path);
-		$js_files = array_merge(array($protocolLink.self::getMediaServer($url).$url), $js_external_files);
+		$js_files = array_merge($js_external_files, array($protocolLink.self::getMediaServer($url).$url));
 
 	}
 
@@ -1983,6 +2000,7 @@ FileETag INode MTime Size
 		/* Forcing Smarty to use the cache */
 		$smarty->force_compile = 0;
 		$smarty->caching = (int)$level;
+		$smarty->setCaching(Smarty::CACHING_LIFETIME_CURRENT);
 	}
 
 	public static function restoreCacheSettings()
@@ -2212,10 +2230,13 @@ FileETag INode MTime Size
 	 *
 	 * @param objet $smarty
 	 */
-	public static function clearCache($smarty)
+	public static function clearCache($smarty, $template = null, $cache_id = null, $compile_id = null)
 	{
 		if (!_PS_FORCE_SMARTY_2_)
-			$smarty->clearAllCache();
+			if($template||$cache_id)
+				$smarty->clearCache($template, $cache_id, $compile_id);
+			else
+				$smarty->clearAllCache();
 		else
 			$smarty->clear_all_cache();
 	}

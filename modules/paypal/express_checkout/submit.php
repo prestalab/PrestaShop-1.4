@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision: 14011 $
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -230,15 +229,28 @@ else
 			/// Check payment (real paid))
 			if ($ppec->hasSucceedRequest() && !empty($ppec->token) && ($amount_match = $ppec->rightPaymentProcess()))
 			{
-				$transaction = array('id_transaction' => pSQL($ppec->result['PAYMENTINFO_0_TRANSACTIONID']),
-               	'id_invoice' => null,
-				'currency' => pSQL($ppec->result['PAYMENTINFO_0_CURRENCYCODE']),
-				'total_paid' => (float)$ppec->result['PAYMENTINFO_0_AMT'],
-				'shipping' => (float)$ppec->result['PAYMENTREQUEST_0_SHIPPINGAMT'],
-				'payment_date' => pSQL($ppec->result['PAYMENTINFO_0_ORDERTIME']));
 
-				$payment_type = (int)Configuration::get('PS_OS_PAYMENT');
-				$message = $ppec->l('Payment accepted.').'<br />';;
+				if ((bool)Configuration::get('PAYPAL_CAPTURE'))
+				{
+					$payment_status = 'Pending_capture';
+					$message = $ppec->l('Pending payment capture.').'<br />';
+					$payment_type = (int)Configuration::get('PS_OS_PAYPAL');
+				}
+				else
+				{
+					$payment_status = $ppec->result['PAYMENTINFO_0_PAYMENTSTATUS'];
+					$message = $ppec->l('Payment accepted.').'<br />';
+					$payment_type = (int)Configuration::get('PS_OS_WS_PAYMENT');
+				}
+				
+				$transaction = array('id_transaction' => pSQL($ppec->result['PAYMENTINFO_0_TRANSACTIONID']),
+	               	'id_invoice' => null,
+					'currency' => pSQL($ppec->result['PAYMENTINFO_0_CURRENCYCODE']),
+					'total_paid' => (float)$ppec->result['PAYMENTINFO_0_AMT'],
+					'shipping' => (float)$ppec->result['PAYMENTREQUEST_0_SHIPPINGAMT'],
+					'payment_date' => pSQL($ppec->result['PAYMENTINFO_0_ORDERTIME']),
+					'payment_status' => pSQL($payment_status)
+				);
 			}
 			else
 			{
@@ -268,6 +280,12 @@ else
 			{
 				$id_order = (int)$ppec->currentOrder;
 				$order = new Order($id_order);
+				
+				$history = new OrderHistory();
+				$history->id_order = (int)$id_order;
+				$history->changeIdOrderState((int)$payment_type, $id_order);
+				$history->addWithemail();
+				$history->add();
 			}
 
 			unset(Context::getContext()->cookie->{PaypalExpressCheckout::$COOKIE_NAME});

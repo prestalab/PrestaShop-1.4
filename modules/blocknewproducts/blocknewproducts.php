@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -56,6 +55,7 @@ class BlockNewProducts extends Module
 		$output = '<h2>'.$this->displayName.'</h2>';
 		if (Tools::isSubmit('submitBlockNewProducts'))
 		{
+			$this->_clearCache(__FILE__, 'blocknewproducts.tpl');
 			if (!$productNbr = Tools::getValue('productNbr') OR empty($productNbr))
 				$output .= '<div class="alert error">'.$this->l('Please fill in the "products displayed" field.').'</div>';
 			elseif ((int)($productNbr) == 0)
@@ -97,13 +97,21 @@ class BlockNewProducts extends Module
 	public function hookRightColumn($params)
 	{
 		global $smarty;
-	
-		$newProducts = Product::getNewProducts((int)($params['cookie']->id_lang), 0, (int)(Configuration::get('NEW_PRODUCTS_NBR')));
-		if (!$newProducts AND !Configuration::get('PS_BLOCK_NEWPRODUCTS_DISPLAY'))
-			return;
-		$smarty->assign(array('new_products' => $newProducts, 'mediumSize' => Image::getSize('medium')));
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blocknewproducts|'.$id_lang;
 
-		return $this->display(__FILE__, 'blocknewproducts.tpl');
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_SHORT'); // 24 Hours
+		Tools::enableCache();
+		if (!$this->isCached('blocknewproducts.tpl', $smartyCacheId))
+		{
+			$newProducts = Product::getNewProducts((int)($params['cookie']->id_lang), 0, (int)(Configuration::get('NEW_PRODUCTS_NBR')));
+			if (!$newProducts AND !Configuration::get('PS_BLOCK_NEWPRODUCTS_DISPLAY'))
+				return;
+			$smarty->assign(array('new_products' => $newProducts, 'mediumSize' => Image::getSize('medium')));
+		}
+		$display = $this->display(__FILE__, 'blocknewproducts.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 	
 	public function hookLeftColumn($params)

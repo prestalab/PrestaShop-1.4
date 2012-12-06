@@ -20,7 +20,6 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision$
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -56,6 +55,7 @@ class BlockTags extends Module
 		$output = '<h2>'.$this->displayName.'</h2>';
 		if (Tools::isSubmit('submitBlockTags'))
 		{
+			$this->_clearCache(__FILE__, 'blocktags.tpl');
 			if (!$tagsNbr = Tools::getValue('tagsNbr') OR empty($tagsNbr))
 				$output .= '<div class="alert error">'.$this->l('Please fill in the "tags displayed" field.').'</div>';
 			elseif ((int)($tagsNbr) == 0)
@@ -96,15 +96,22 @@ class BlockTags extends Module
 	function hookLeftColumn($params)
 	{
 		global $smarty;
-
-		$tags = Tag::getMainTags((int)$params['cookie']->id_lang, (int)Configuration::get('BLOCKTAGS_NBR'));
-		if (!count($tags))
-			return false;
-		foreach ($tags as &$tag)
-			$tag['class'] = 'tag_level'.($tag['times'] > BLOCKTAGS_MAX_LEVEL ? BLOCKTAGS_MAX_LEVEL : $tag['times']);
-		$smarty->assign('tags', $tags);
-		
-		return $this->display(__FILE__, 'blocktags.tpl');
+		$id_lang = (int)($params['cookie']->id_lang);
+		$smartyCacheId = 'blocktags|'.$id_lang;
+		$smarty->cache_lifetime = Configuration::get('PL_CACHE_LONG'); // 1 Year
+		Tools::enableCache();
+		if (!$this->isCached('blocktags.tpl', $smartyCacheId))
+		{
+			$tags = Tag::getMainTags((int)$params['cookie']->id_lang, (int)Configuration::get('BLOCKTAGS_NBR'));
+			if (!count($tags))
+				return false;
+			foreach ($tags as &$tag)
+				$tag['class'] = 'tag_level'.($tag['times'] > BLOCKTAGS_MAX_LEVEL ? BLOCKTAGS_MAX_LEVEL : $tag['times']);
+			$smarty->assign('tags', $tags);
+		}
+		$display = $this->display(__FILE__, 'blocktags.tpl', $smartyCacheId);
+		Tools::restoreCacheSettings();
+		return $display;
 	}
 
 	function hookRightColumn($params)

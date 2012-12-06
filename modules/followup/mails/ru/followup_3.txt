@@ -1,9 +1,9 @@
-Hello {firstname} {lastname},
- 
-You are part of our best customers and as such we want to thank you for the confidence you share.
+Здравствуйте {firstname} {lastname},
 
-As an exception, we grant you a discount of {amount}% valid on your next order! This offer is valid for {days} days, so do not waste a moment!
- 
-Here is your coupon: {voucher_num}
+Вы являетесь частью наших лучших клиентов, и поэтому мы хотим поблагодарить вас за доверие!
 
-Enter this code in your shopping cart to get your discount.
+В исключение, мы предоставляем вам скидку {amount}% для вашего следующего заказа! Данное предложение действует в течение {days} дней, просим вас не упустить момент!
+
+здесь указан ваш купон: {voucher_num}
+
+Введите этот код для входа в корзину, чтобы получить вашу скидку.

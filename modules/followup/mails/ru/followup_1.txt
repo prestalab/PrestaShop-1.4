@@ -1,13 +1,13 @@
-Hello {firstname} {lastname},
+Здравствуйте {firstname} {lastname},
  
-We noticed that during your last visit on {shop_name}, you did not validate the order you had started.
+Мы заметили, что во время своего последнего визита на {shop_name}, Вы положили товар в корзину, но по каким-то причинам не перешли к оформлению заказа.
 
-Your cart has been saved, you can resume your order by visiting our shop:
+Ваша корзина была сохранена и Вы можете снова продолжить оформление покупки, нажав на ссылку ниже:
 
 {shop_url}
 
-As an exception, we grant you a discount of {amount}% off your next order! This offer is valid for {days} days, so do not waste a moment!
+Сегодня, в качестве подарка, мы предоставляем Вам скидку в размере {amount}% на все товары нашего магазина! Это предложение действительно в течение {days} дней, так что не теряйте момент!
  
-Here is your coupon: {voucher_num}
+Вот Ваш купон на скидку: {voucher_num}
 
-Enter this code in your shopping cart to get your discount.
+Введите код купона в корзине при оформлении заказа, чтобы получить скидку.

@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
+*  @copyright  2007-2013 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -44,6 +44,8 @@ class HomeFeatured extends Module
 		
 		$this->displayName = $this->l('Featured Products on the homepage');
 		$this->description = $this->l('Displays Featured Products in the middle of your homepage.');
+		
+		$this->defaultNumberProducts = 8;
 	}
 
 	function install()
@@ -106,7 +108,7 @@ class HomeFeatured extends Module
 			$nb = (int)Configuration::get('HOME_FEATURED_NBR');
 
 			$smarty->assign(array(
-			'products' => $category->getProducts((int)$params['cookie']->id_lang, 1, ($nb ? $nb : 10)),
+			'products' => $category->getProducts((int)$params['cookie']->id_lang, 1, ($nb ? $nb : $this->defaultNumberProducts)),
 			'add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
 			'homeSize' => Image::getSize('home')));
 		}

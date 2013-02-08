@@ -3,7 +3,7 @@
 	<name>ebay</name>
 	<displayName><![CDATA[eBay]]></displayName>
 	<version><![CDATA[1.3.6]]></version>
-	<description><![CDATA[Easily export your products from PrestaShop to eBay, the biggest market place, to acquire new customers and realize more sales.]]></description>
+	<description><![CDATA[Open your shop on the eBay market place !]]></description>
 	<author><![CDATA[PrestaShop]]></author>
 	<tab><![CDATA[market_place]]></tab>
 	<is_configurable>1</is_configurable>

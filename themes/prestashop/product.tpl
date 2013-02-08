@@ -1,5 +1,5 @@
 {*
-* 2007-2012 PrestaShop
+* 2007-2013 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
+*  @copyright  2007-2013 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -144,14 +144,8 @@ var fieldRequired = '{l s='Please fill in all required fields, then save your cu
 	<div id="pb-right-column">
 		<!-- product img-->
 		<div id="image-block">
-		{if $have_image}
-			<img src="{$link->getImageLink($product->link_rewrite, $cover.id_image, 'large')}"
-				{if $jqZoomEnabled}class="jqzoom" alt="{$link->getImageLink($product->link_rewrite, $cover.id_image, 'thickbox')}"{else} title="{$product->name|escape:'htmlall':'UTF-8'}" alt="{$product->name|escape:'htmlall':'UTF-8'}" {/if} id="bigpic" width="{$largeSize.width}" height="{$largeSize.height}" />
-		{else}
-			<img src="{$img_prod_dir}{$lang_iso}-default-large.jpg" id="bigpic" alt="" title="{$cover.legend|escape:'htmlall':'UTF-8'}" width="{$largeSize.width}" height="{$largeSize.height}" />
-		{/if}
+			<img id="bigpic" src="{if $have_image}{$link->getImageLink($product->link_rewrite, $cover.id_image, 'large')}{else}{$img_prod_dir}{$lang_iso}-default-large.jpg{/if}"{if $jqZoomEnabled && $have_image} class="jqzoom" alt="{$link->getImageLink($product->link_rewrite, $cover.id_image, 'thickbox')}"{else} alt="{$cover.legend|escape:'htmlall':'UTF-8'}"{/if} title="{$cover.legend|escape:'htmlall':'UTF-8'}" width="{$largeSize.width}" height="{$largeSize.height}"/>
 		</div>
-
 		{if isset($images) && count($images) > 0}
 		<!-- thumbnails -->
 		<div id="views_block" {if isset($images) && count($images) < 2}class="hidden"{/if}>
@@ -177,7 +171,7 @@ var fieldRequired = '{l s='Please fill in all required fields, then save your cu
 		<!-- usefull links-->
 		<ul id="usefull_link_block">
 			{if $HOOK_EXTRA_LEFT}{$HOOK_EXTRA_LEFT}{/if}
-			<li><a href="javascript:print();">{l s='Print'}</a><br class="clear" /></li>
+			<li><a href="javascript:print();">{l s='Print'}</a></li>
 			{if $have_image && !$jqZoomEnabled}
 			<li><span id="view_full_size" class="span_link">{l s='Maximize'}</span></li>
 			{/if}
@@ -478,16 +472,17 @@ var fieldRequired = '{l s='Please fill in all required fields, then save your cu
 
 <!-- Customizable products -->
 {if $product->customizable}
+	<p>
+		<img src="{$img_dir}icon/infos.gif" alt="Informations" />
+		{l s='After saving your customized product, remember to add it to your cart.'}
+		{if $product->uploadable_files}<br />{l s='Allowed file formats are: GIF, JPG, PNG'}{/if}
+	</p>
 	<ul class="idTabs">
 		<li><a style="cursor: pointer">{l s='Product customization'}</a></li>
 	</ul>
-	<div class="customization_block">
+	<div class="customization_block clear">
+	
 		<form method="post" action="{$customizationFormTarget}" enctype="multipart/form-data" id="customizationForm">
-			<p>
-				<img src="{$img_dir}icon/infos.gif" alt="Informations" />
-				{l s='After saving your customized product, remember to add it to your cart.'}
-				{if $product->uploadable_files}<br />{l s='Allowed file formats are: GIF, JPG, PNG'}{/if}
-			</p>
 			{if $product->uploadable_files|intval}
 			<h2>{l s='Pictures'}</h2>
 			<ul id="uploadable_files">

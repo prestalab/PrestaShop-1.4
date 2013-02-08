@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2012 PrestaShop
+* 2007-2013 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
+*  @copyright  2007-2013 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -569,9 +569,14 @@ class CartCore extends ObjectModel
 		/* Product is available for order, let's add it to the cart or update the existing quantities */
 		else
 		{
+			if ($id_product_attribute)
+			{
+				$combination = new Combination((int)$id_product_attribute);
+				if ($combination->id_product != $id_product)
+					return false;
+			}
 			/* If we have a product combination, the minimal quantity is set with the one of this combination */
 			$minimalQuantity = !empty($id_product_attribute) ? (int)Attribute::getAttributeMinimalQty((int)$id_product_attribute) : (int)$product['minimal_quantity'];
-		
 			/* Check if the product is already in the cart */
 			$result = $this->containsProduct((int)$id_product, (int)$id_product_attribute, (int)$id_customization);
 
@@ -765,7 +770,7 @@ class CartCore extends ObjectModel
 		{
 			$productTotalQuantity = (int)(Db::getInstance()->getValue('SELECT `quantity`
 				FROM `'._DB_PREFIX_.'cart_product`
-				WHERE `id_product` = '.(int)($id_product).' AND `id_product_attribute` = '.(int)($id_product_attribute)));
+				WHERE `id_product` = '.(int)($id_product).' AND `id_product_attribute` = '.(int)($id_product_attribute).' AND id_cart = ' .(int)$this->id));
 			$customizationQuantity = (int)(Db::getInstance()->getValue('SELECT `quantity`
 				FROM `'._DB_PREFIX_.'customization`
 				WHERE `id_cart` = '.(int)($this->id).'
@@ -1385,8 +1390,9 @@ class CartCore extends ObjectModel
 			$invoice = (int)$this->id_address_invoice ? new Address((int)$this->id_address_invoice) : new Address();
 
 		// New layout system with personalization fields
+		$formattedAddresses['delivery'] = $this->id_address_delivery ? AddressFormat::getFormattedLayoutData($delivery) : array();		
 		$formattedAddresses['invoice'] = $this->id_address_invoice ? AddressFormat::getFormattedLayoutData($invoice) : array();
-		$formattedAddresses['delivery'] = $this->id_address_delivery ? AddressFormat::getFormattedLayoutData($delivery) : array();
+
 
 		$total_price = $this->getOrderTotal();
 		$total_price_without_tax = $this->getOrderTotal(false);

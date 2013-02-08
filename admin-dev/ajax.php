@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2012 PrestaShop
+* 2007-2013 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
+*  @copyright  2007-2013 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -324,7 +324,12 @@ if (array_key_exists('ajaxProductsPositions', $_POST))
 			{
 				if ($product = new Product((int)$pos[2]))
 					if (isset($position) && $product->updatePosition($way, $position))
-						echo "ok position ".(int)$position." for product ".(int)$pos[2]."\r\n";
+					{
+						$category = new Category((int)$id_category);
+						if (Validate::isLoadedObject($category))
+							Module::hookExec('categoryUpdate', array('category' => $category));
+						echo "ok position ".(int)$position." for product ".(int)$pos[2]."\r\n";							
+					}
 					else
 						echo '{"hasError" : true, "errors" : "Can not update product '. $id_product . ' to position '.(int)$position.' "}';
 				else

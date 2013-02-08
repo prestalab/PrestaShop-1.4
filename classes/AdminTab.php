@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2012 PrestaShop
+* 2007-2013 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
+*  @copyright  2007-2013 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -1189,8 +1189,10 @@ abstract class AdminTabCore
 			($this->_tmpTableFilter ? ') tmpTable WHERE 1'.$this->_tmpTableFilter : '').'
 			LIMIT '.(int)($start).','.(int)($limit);
 
-		$this->_list = Db::getInstance()->ExecuteS($sql);
-		$this->_listTotal = Db::getInstance()->getValue('SELECT FOUND_ROWS() AS `'._DB_PREFIX_.$this->table.'`');
+		if (!($this->_list = Db::getInstance()->ExecuteS($sql)))
+			$this->_list_error = Db::getInstance()->getMsgError();
+		else
+			$this->_listTotal = Db::getInstance()->getValue('SELECT FOUND_ROWS() AS `'._DB_PREFIX_.$this->table.'`');
 
 	}
 
@@ -1423,7 +1425,7 @@ abstract class AdminTabCore
 		/* Append when we get a syntax error in SQL query */
 		if ($this->_list === false)
 		{
-			$this->displayWarning($this->l('Bad SQL query'));
+			$this->displayWarning($this->l('Bad SQL query').'<br />'.htmlspecialchars($this->_list_error));
 			return false;
 		}
 
@@ -1655,17 +1657,17 @@ abstract class AdminTabCore
 
 		$defaultLanguage = (int)_PS_LANG_DEFAULT_;
 		$this->_languages = Language::getLanguages(false);
-		$tab = Tab::getTab((int)$cookie->id_lang, Tab::getIdFromClassName($tab));
+		$tabAdmin = Tab::getTab((int)$cookie->id_lang, Tab::getIdFromClassName($tab));
 		echo '<br /><br />';
 		echo (isset($this->optionTitle) ? '<h2>'.$this->optionTitle.'</h2>' : '');
 		echo '
 		<script type="text/javascript">
 			id_language = Number('.$defaultLanguage.');
 		</script>
-		<form action="'.$currentIndex.'" id="'.$tab['name'].'" name="'.$tab['name'].'" method="post">
+		<form action="'.$currentIndex.'" id="'.$tabAdmin['name'].'" name="'.$tabAdmin['name'].'" method="post">
 			<fieldset>';
 				echo (isset($this->optionTitle) ? '<legend>
-					<img src="'.(!empty($tab['module']) && file_exists($_SERVER['DOCUMENT_ROOT']._MODULE_DIR_.$tab['module'].'/'.$tab['class_name'].'.gif') ? _MODULE_DIR_.$tab['module'].'/' : '../img/t/').$tab['class_name'].'.gif" />'
+					<img src="'.(!empty($tabAdmin['module']) && file_exists($_SERVER['DOCUMENT_ROOT']._MODULE_DIR_.$tabAdmin['module'].'/'.$tabAdmin['class_name'].'.gif') ? _MODULE_DIR_.$tabAdmin['module'].'/' : '../img/t/').$tabAdmin['class_name'].'.gif" />'
 					.$this->optionTitle.'</legend>' : '');
 		foreach ($this->_fieldsOptions as $key => $field)
 		{

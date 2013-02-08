@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2012 PrestaShop
+* 2007-2013 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
+*  @copyright  2007-2013 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -851,15 +851,20 @@ class AdminProducts extends AdminTab
 				$this->_errors[] = Tools::displayError('You do not have permission to edit here.');
 		}
 		elseif (isset($_GET['position']))
-		{
+		{					
 			if ($this->tabAccess['edit'] !== '1')
 				$this->_errors[] = Tools::displayError('You do not have permission to edit here.');
 			elseif (!Validate::isLoadedObject($object = $this->loadObject()))
 				$this->_errors[] = Tools::displayError('An error occurred while updating status for object.').' <b>'.$this->table.'</b> '.Tools::displayError('(cannot load object)');
-			if (!$object->updatePosition((int)(Tools::getValue('way')), (int)(Tools::getValue('position'))))
+			if (!$object->updatePosition((int)Tools::getValue('way'), (int)Tools::getValue('position')))
 				$this->_errors[] = Tools::displayError('Failed to update the position.');
 			else
-				Tools::redirectAdmin($currentIndex.'&'.$this->table.'Orderby=position&'.$this->table.'Orderway=asc&conf=5'.(($id_category = (!empty($_REQUEST['id_category'])?$_REQUEST['id_category']:'1')) ? ('&id_category='.$id_category) : '').'&token='.Tools::getAdminTokenLite('AdminCatalog'));
+			{
+				$category = new Category((int)tools::getValue('id_category'));							
+				if (Validate::isLoadedObject($category))
+					Module::hookExec('categoryUpdate', array('category' => $category));
+				Tools::redirectAdmin($currentIndex.'&'.$this->table.'Orderby=position&'.$this->table.'Orderway=asc&conf=5'.(($id_category = (!empty($_REQUEST['id_category'])?$_REQUEST['id_category']:'1')) ? ('&id_category='.$id_category) : '').'&token='.Tools::getAdminTokenLite('AdminCatalog'));					
+			}								
 		}
 		else
 			parent::postProcess(true);
@@ -2121,7 +2126,7 @@ class AdminProducts extends AdminTab
 		$has_attribute = false;
 		$qty_state = 'readonly';
 		$qty = Attribute::getAttributeQty($this->getFieldValue($obj, 'id_product'));
-		if ($qty === false) {
+		if ((bool)$qty === false) {
 			if (Validate::isLoadedObject($obj))
 				$qty = $this->getFieldValue($obj, 'quantity');
 			else

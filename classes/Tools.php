@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2012 PrestaShop
+* 2007-2013 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
+*  @copyright  2007-2013 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -544,14 +544,14 @@ class ToolsCore
 	{
 		if (is_array($string))
 			return array_map(array('Tools', 'htmlentitiesUTF8'), $string);
-		return htmlentities($string, $type, 'utf-8');
+		return htmlentities((string)$string, $type, 'utf-8');
 	}
 
 	public static function htmlentitiesDecodeUTF8($string)
 	{
 		if (is_array($string))
 			return array_map(array('Tools', 'htmlentitiesDecodeUTF8'), $string);
-		return html_entity_decode($string, ENT_QUOTES, 'utf-8');
+		return html_entity_decode((string)$string, ENT_QUOTES, 'utf-8');
 	}
 
 	public static function safePostVars()
@@ -1795,7 +1795,7 @@ class ToolsCore
 		{
 			$tab['RewriteRule']['content']['^([a-z]{2})/[a-zA-Z0-9-]*/([0-9]+)\-[a-zA-Z0-9-]*\.html'] = 'product.php?id_product=$2&isolang=$1 [QSA,L]';
 			$tab['RewriteRule']['content']['^([a-z]{2})/([0-9]+)\-[a-zA-Z0-9-]*\.html'] = 'product.php?id_product=$2&isolang=$1 [QSA,L]';
-			$tab['RewriteRule']['content']['^([a-z]{2})/([0-9]+)\-[a-zA-Z0-9-]*(/[a-zA-Z0-9-]*)+'] = 'category.php?id_category=$2&isolang=$1&noredirect=1 [QSA,L]';
+			$tab['RewriteRule']['content']['^([a-z]{2})/([0-9]+)\-[a-zA-Z0-9-]*(/[a-zA-Z0-9-]*)+'] = 'category.php?id_category=$2&isolang=$1 [QSA,L]';
 			$tab['RewriteRule']['content']['^([a-z]{2})/([0-9]+)\-[a-zA-Z0-9-]*'] = 'category.php?id_category=$2&isolang=$1 [QSA,L]';
 			$tab['RewriteRule']['content']['^([a-z]{2})/content/([0-9]+)\-[a-zA-Z0-9-]*'] = 'cms.php?isolang=$1&id_cms=$2 [QSA,L]';
 			$tab['RewriteRule']['content']['^([a-z]{2})/content/category/([0-9]+)\-[a-zA-Z0-9-]*'] = 'cms.php?isolang=$1&id_cms_category=$2 [QSA,L]';
@@ -1810,7 +1810,7 @@ class ToolsCore
 		$tab['RewriteRule']['content']['^[a-zA-Z0-9-]*/([0-9]+)\-[a-zA-Z0-9-]*\.html'] = 'product.php?id_product=$1 [QSA,L]';
 		// Notice : the id_category rule has to be after product rules.
 		// If not, category with number in their name will result a bug
-		$tab['RewriteRule']['content']['^([0-9]+)\-[a-zA-Z0-9-]*(/[a-zA-Z0-9-]*)+'] = 'category.php?id_category=$1&noredirect=1 [QSA,L]';
+		$tab['RewriteRule']['content']['^([0-9]+)\-[a-zA-Z0-9-]*(/[a-zA-Z0-9-]*)+'] = 'category.php?id_category=$1 [QSA,L]';
 		$tab['RewriteRule']['content']['^([0-9]+)\-[a-zA-Z0-9-]*'] = 'category.php?id_category=$1 [QSA,L]';
 		$tab['RewriteRule']['content']['^([0-9]+)__([a-zA-Z0-9-]*)'] = 'supplier.php?id_supplier=$1 [QSA,L]';
 		$tab['RewriteRule']['content']['^([0-9]+)_([a-zA-Z0-9-]*)'] = 'manufacturer.php?id_manufacturer=$1 [QSA,L]';

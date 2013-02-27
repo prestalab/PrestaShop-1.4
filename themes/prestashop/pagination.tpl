@@ -62,7 +62,7 @@
 			<li><a {$no_follow_text}  href="{$link->goPage($requestPage, 1)}">1</a></li>
 			<li class="truncate">...</li>
 		{/if}
-		{section name=pagination start=$start loop=$stop step=1}
+		{section name=pagination start=$start loop=$stop+1 step=1}
 			{if $p == $smarty.section.pagination.index}
 				<li class="current"><span>{$p|escape:'htmlall':'UTF-8'}</span></li>
 			{else}

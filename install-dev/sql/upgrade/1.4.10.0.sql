@@ -15,7 +15,9 @@ INSERT INTO `PREFIX_hook_module` (`id_module`, `id_hook` , `position`)
 (SELECT id_module, 54, (SELECT max_position from (SELECT MAX(position)+1 as max_position FROM `PREFIX_hook_module` WHERE `id_hook` = 54) tmp) FROM `PREFIX_module` WHERE `name` = 'backwardcompatibility');
 
 UPDATE `PREFIX_order_state` SET `send_email` = 1 WHERE `id_order_state` = (SELECT `value` FROM `PREFIX_configuration` WHERE `name` = 'PS_OS_WS_PAYMENT' LIMIT 1);
-UPDATE `PREFIX_order_state_lang` SET `template` = 'payment' WHERE `id_order_state` = (SELECT `value` FROM `PREFIX_configuration` WHERE `name` = 'PS_OS_WS_PAYMENT' LIMIT 1);(SELECT id_module, 54, (SELECT max_position from (SELECT MAX(position)+1 as max_position FROM `PREFIX_hook_module` WHERE `id_hook` = 54) tmp) FROM `PREFIX_module` WHERE `name` = 'backwardcompatibility');
+UPDATE `PREFIX_order_state_lang` SET `template` = 'payment' WHERE `id_order_state` = (SELECT `value` FROM `PREFIX_configuration` WHERE `name` = 'PS_OS_WS_PAYMENT' LIMIT 1);
+
+ALTER TABLE `PREFIX_county_zip_code` CHANGE `from_zip_code` `from_zip_code` VARCHAR( 12 ) NOT NULL , CHANGE `to_zip_code` `to_zip_code` VARCHAR( 12 ) NOT NULL;
 
 /* Cache system */
 ALTER TABLE  `PREFIX_hook_module` ADD  `time` INT( 10 ) NOT NULL DEFAULT  '0';
@@ -60,5 +62,3 @@ CREATE TABLE `PREFIX_cms_category_cms` (
 INSERT INTO `PREFIX_cms_category_cms` (`id_cms_category`, `id_cms`) SELECT `id_cms_category`, `id_cms` FROM `PREFIX_cms`;
 INSERT INTO `PREFIX_hook` (`name`, `title`, `description`, `position`) VALUES ('cmsFooter', 'CMS page footer', NULL, 0);
 INSERT INTO `PREFIX_hook` (`name`, `title`, `description`, `position`) VALUES ('cmsCategory', 'CMS category page footer', NULL, 0);
-
-

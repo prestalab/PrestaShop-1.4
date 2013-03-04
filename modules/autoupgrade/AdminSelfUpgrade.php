@@ -561,7 +561,7 @@ class AdminSelfUpgrade extends AdminSelfTab
 		if(empty($allowed_array))
 		{
 			$allowed_array = array();
-			$allowed_array['fopen'] = ConfigurationTest::test_fopen();
+			$allowed_array['fopen'] = ConfigurationTest::test_fopen() || ConfigurationTest::test_curl();
 			$allowed_array['root_writable'] = $this->getRootWritable();
 			$allowed_array['shop_deactivated'] = !Configuration::get('PS_SHOP_ENABLE');
 			$allowed_array['cache_deactivated'] = !(defined('_PS_CACHE_ENABLED_') && _PS_CACHE_ENABLED_);
@@ -672,8 +672,9 @@ class AdminSelfUpgrade extends AdminSelfTab
 			$xml_local = $this->prodRootDir.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'xml'.DIRECTORY_SEPARATOR.'modules_native_addons.xml';
 			$xml = $upgrader->getApiAddons($xml_local, $postData, true);
 
-			foreach ($xml as $mod)
-				$this->modules_addons[(string)$mod->id] = (string)$mod->name;
+			if (is_object($xml))
+				foreach ($xml as $mod)
+					$this->modules_addons[(string)$mod->id] = (string)$mod->name;
 
 			// installedLanguagesIso is used to merge translations files
 			$iso_ids = Language::getIsoIds(false);
@@ -844,10 +845,10 @@ class AdminSelfUpgrade extends AdminSelfTab
 		}
 		
 		
-		if (Tools::isSubmit('putUnderMaintenance'))
+		if (Tools14::isSubmit('putUnderMaintenance'))
 			Configuration::updateValue('PS_SHOP_ENABLE', 0);
 		
-		if (Tools::isSubmit('customSubmitAutoUpgrade'))
+		if (Tools14::isSubmit('customSubmitAutoUpgrade'))
 		{
 			$config_keys = array_keys(array_merge($this->_fieldsUpgradeOptions, $this->_fieldsBackupOptions));
 			$config = array();
@@ -856,13 +857,13 @@ class AdminSelfUpgrade extends AdminSelfTab
 					$config[$key] = $_POST[$key];
 			$res = $this->writeConfig($config);
 			if ($res)
-				Tools::redirectAdmin($currentIndex.'&conf=6&token='.Tools::getValue('token'));
+				Tools14::redirectAdmin($currentIndex.'&conf=6&token='.Tools14::getValue('token'));
 		}
 
-		if (Tools::isSubmit('deletebackup'))
+		if (Tools14::isSubmit('deletebackup'))
 		{
 			$res = true;
-			$name = Tools::getValue('name');
+			$name = Tools14::getValue('name');
 			$filelist = scandir($this->backupPath);
 			foreach($filelist as $filename)
 				// the following will match file or dir related to the selected backup
@@ -875,7 +876,7 @@ class AdminSelfUpgrade extends AdminSelfTab
 						self::deleteDirectory($this->backupPath.DIRECTORY_SEPARATOR.$name);
 				}
 			if ($res)
-				Tools::redirectAdmin($currentIndex.'&conf=1&token='.Tools::getValue('token'));
+				Tools14::redirectAdmin($currentIndex.'&conf=1&token='.Tools14::getValue('token'));
 			else
 				$this->_errors[] = sprintf($this->l('Error when trying to delete backups %s'), $name);
 		}
@@ -1020,7 +1021,7 @@ class AdminSelfUpgrade extends AdminSelfTab
 		{
 			if (file_exists($this->autoupgradePath.DIRECTORY_SEPARATOR.$this->configFilename))
 			{
-				$config_content = file_get_contents($this->autoupgradePath.DIRECTORY_SEPARATOR.$this->configFilename);
+				$config_content = Tools14::file_get_contents($this->autoupgradePath.DIRECTORY_SEPARATOR.$this->configFilename);
 				$config = unserialize($config_content);
 			}
 			else
@@ -1075,9 +1076,7 @@ class AdminSelfUpgrade extends AdminSelfTab
 		$this->next = '';
 		// update channel
 		if (isset($this->currentParams['channel']))
-		{
 			$config['channel'] = $this->currentParams['channel'];
-		}
 		if (isset($this->currentParams['private_release_link']) && isset($this->currentParams['private_release_md5']))
 		{
 			$config['channel'] = 'private';
@@ -1688,8 +1687,9 @@ class AdminSelfUpgrade extends AdminSelfTab
 		{
 			if (is_dir($dir.DIRECTORY_SEPARATOR.$module_name))
 			{
-				$id_addons = array_search($module_name, $this->modules_addons);
-				if ($id_addons)
+				if(is_array($this->modules_addons))
+					$id_addons = array_search($module_name, $this->modules_addons);
+				if (isset($id_addons) && $id_addons)
 					$list[] = array('id' => $id_addons, 'name' => $module_name);
 			}
 		}
@@ -1897,10 +1897,22 @@ class AdminSelfUpgrade extends AdminSelfTab
 			@ini_set('memory_limit','128M');
 
 		/* Redefine REQUEST_URI if empty (on some webservers...) */
-		if (!isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] == '')
-			$_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
-		if ($tmp = strpos($_SERVER['REQUEST_URI'], '?'))
-			$_SERVER['REQUEST_URI'] = substr($_SERVER['REQUEST_URI'], 0, $tmp);
+		if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI']))
+		{
+			if (!isset($_SERVER['SCRIPT_NAME']) && isset($_SERVER['SCRIPT_FILENAME']))
+				$_SERVER['SCRIPT_NAME'] = $_SERVER['SCRIPT_FILENAME'];
+			if (isset($_SERVER['SCRIPT_NAME']))
+			{
+				if (basename($_SERVER['SCRIPT_NAME']) == 'index.php' && empty($_SERVER['QUERY_STRING']))
+					$_SERVER['REQUEST_URI'] = dirname($_SERVER['SCRIPT_NAME']).'/';
+				else
+				{
+					$_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
+					if (isset($_SERVER['QUERY_STRING']) && !empty($_SERVER['QUERY_STRING']))
+						$_SERVER['REQUEST_URI'] .= '?'.$_SERVER['QUERY_STRING'];
+				}
+			}
+		}
 		$_SERVER['REQUEST_URI'] = str_replace('//', '/', $_SERVER['REQUEST_URI']);
 
 		define('INSTALL_VERSION', $this->install_version);
@@ -3096,7 +3108,7 @@ class AdminSelfUpgrade extends AdminSelfTab
 					return false;
 				}
 
-				$written += fwrite($fp, '/* Backup ' . $this->nextParams['dbStep'] . ' for ' . Tools::getHttpHost(false, false) . __PS_BASE_URI__ . "\n *  at " . date('r') . "\n */\n");
+				$written += fwrite($fp, '/* Backup ' . $this->nextParams['dbStep'] . ' for ' . Tools14::getHttpHost(false, false) . __PS_BASE_URI__ . "\n *  at " . date('r') . "\n */\n");
 				$written += fwrite($fp, "\n".'SET NAMES \'utf8\';'."\n\n");
 				// end init file
 			}
@@ -3487,7 +3499,7 @@ class AdminSelfUpgrade extends AdminSelfTab
 	 */
 	public function ajaxProcessDownload()
 	{
-		if (@ini_get('allow_url_fopen'))
+		if (ConfigurationTest::test_fopen() || ConfigurationTest::test_curl())
 		{
 			if (!is_object($this->upgrader))
 				$this->upgrader = new Upgrader();
@@ -3621,7 +3633,7 @@ class AdminSelfUpgrade extends AdminSelfTab
 			}
 		}
 
-		if (!method_exists('Tools', 'apacheModExists') || Tools::apacheModExists('evasive'))
+		if (!method_exists('Tools', 'apacheModExists') || Tools14::apacheModExists('evasive'))
 			sleep(1);
 	}
 
@@ -3788,6 +3800,9 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 		$this->_html .= '<th>'.$this->l('The PHP "Safe mode" option is turned off').'</th>
 			<td>'.(!ini_get('safe_mode') ? $pic_ok : $pic_warn).'</td></tr>';
 
+		$this->_html .= '<th>'.$this->l('The PHP "allow_url_fopen" option is turned on or CURL is installed').'</th>
+			<td>'.((ConfigurationTest::test_fopen() || ConfigurationTest::test_curl()) ? $pic_ok : $pic_nok).'</td></tr>';
+
 		// shop enabled
 		$this->_html .= '<th>'.$this->l('You put your store under maintenance').' '.(!$current_ps_config['shop_deactivated'] ? '<br><form method="post" action="'.$currentIndex.'&token='.$this->token.'"><input type="submit" class="button" name="putUnderMaintenance" value="'.$this->l('Click here to put your shop under maintenance').'"></form>' : '').'</th>
 			<td>'.($current_ps_config['shop_deactivated'] ? $pic_ok : $pic_nok).'</td></tr>';
@@ -3909,13 +3924,13 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 		$download = $this->downloadPath.DIRECTORY_SEPARATOR;
 		$dir = glob($download.'*.zip');
 		$content .= '<div id="for-useArchive">';
-		if (count($dir) > 0)
+		if ($dir !== false && count($dir) > 0)
 		{
 			$archive_filename = $this->getConfig('archive.filename');
 			$content .= '<label class="label-small">'.$this->l('Archive to use:').'</label><div><select name="archive_prestashop" >
 				<option value="">'.$this->l('choose an archive').'</option>';
-			foreach($dir as $file)
-				$content .= '<option '.($archive_filename?'selected="selected"':'').' value="'.str_replace($download, '', $file).'">'.str_replace($download, '', $file).'</option>';
+			foreach ($dir as $file)
+				$content .= '<option '.($archive_filename ? 'selected="selected"' : '').' value="'.str_replace($download, '', $file).'">'.str_replace($download, '', $file).'</option>';
 			$content .= '</select> '
 				.$this->l('to upgrade for version').' <input type="text" size="10" name="archive_num"
 				value="'.($this->getConfig('archive.version_num')?$this->getConfig('archive.version_num'):'').'" /> *
@@ -3953,7 +3968,7 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 		<div>
 			<input type="button" class="button" style="float:right" name="btn_adv" value="'.$this->l('More options (Expert mode)').'"/>
 			</div>
-			<div style="float:left;position:absolute;display:none;" id="configResult">&nbsp;</div>
+			<div style="float: left; margin-top: 13px; display:none;" id="configResult">&nbsp;</div>
 			<div class="clear" id="advanced">
 				<h3>'.$this->l('Expert mode').'</3>
 				<h4 style="margin-top: 0px;">'.$this->l('Please select your channel:').'</h4>
@@ -4091,7 +4106,7 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 				if (version_compare(_PS_VERSION_, '1.4.0.0', '<='))
 				{
 					if (method_exists('Tools','getAdminTokenLite'))
-						$token_preferences = Tools::getAdminTokenLite('AdminPreferences');
+						$token_preferences = Tools14::getAdminTokenLite('AdminPreferences');
 					else
 						$token_preferences = Tools14::getAdminTokenLite('AdminPreferences');
 					$this->_html .= '<div class="clear">&nbsp;</div><b>'.$this->l('Smarty 3 Usage:').'</b> <img src="'.$srcShopStatus.'" />'.$label;
@@ -4139,7 +4154,7 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 			$this->_html .= 
 				'<div class="clear"></div>
 				<a class="button button-autoupgrade" 
-					href="index.php?tab=AdminSelfUpgrade&token='.Tools::getAdminToken('AdminSelfUpgrade'.(int)Tab::getIdFromClassName('AdminSelfUpgrade').(int)$cookie->id_employee)
+					href="index.php?tab=AdminSelfUpgrade&token='.Tools14::getAdminToken('AdminSelfUpgrade'.(int)Tab::getIdFromClassName('AdminSelfUpgrade').(int)$cookie->id_employee)
 				.'&refreshCurrentVersion=1">'.$this->l('Check if a new version is available').'</a>';
 			
 			$this->_html .= '<div><span style="font-style: italic; font-size: 11px;">'.sprintf($this->l('Last check: %s'), Configuration::get('PS_LAST_VERSION_CHECK') ? date('Y-m-d H:i:s', Configuration::get('PS_LAST_VERSION_CHECK')) : $this->l('never')).'</span></div>';
@@ -4147,7 +4162,7 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 		else
 		{
 			$this->_html .= '<div class="clear"></div><a class="button button-autoupgrade" href="index.php?tab=AdminSelfUpgrade&token='
-				.Tools::getAdminToken('AdminSelfUpgrade'
+				.Tools14::getAdminToken('AdminSelfUpgrade'
 					.(int)Tab::getIdFromClassName('AdminSelfUpgrade')
 					.(int)$cookie->id_employee)
 				.'&refreshCurrentVersion=1">'.$this->l('refresh the page').'</a>';
@@ -4171,13 +4186,10 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 	{
 		global $currentIndex;
 
-		// We need jquery 1.6 for json
-		// do we ?
-		$this->_html .= '<script type="text/javascript">
-		if (jQuery == "undefined")
-			jq13 = jQuery.noConflict(true);
-			</script>
-		<script type="text/javascript" src="'.__PS_BASE_URI__.'modules/autoupgrade/js/jquery-1.6.2.min.js"></script>';
+		$this->_html .= '<script type="text/javascript">var jQueryVersionPS = parseFloat("."+$().jquery.replace(/\./g, ""));</script>
+		<script type="text/javascript" src="'.__PS_BASE_URI__.'modules/autoupgrade/js/jquery-1.6.2.min.js"></script>
+		<script type="text/javascript">if (jQueryVersionPS >= 0.162) jq162 = jQuery.noConflict(true);</script>';
+		
 		/* PrestaShop demo mode */
 		if (defined('_PS_MODE_DEMO_') && _PS_MODE_DEMO_)
 		{
@@ -4219,7 +4231,7 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 					else
 						$upgrader->checkPSVersion(true, array('minor'));
 					
-					Tools::redirectAdmin($currentIndex.'&conf=5&token='.Tools::getValue('token'));
+					Tools14::redirectAdmin($currentIndex.'&conf=5&token='.Tools14::getValue('token'));
 				}
 				else
 				{
@@ -4243,7 +4255,7 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 			<img src="../img/admin/warning.gif" alt=""/><strong>'.$this->l('This module is still in a "beta" version.').'</strong><br /><br /><span style="color: #CC0000; font-weight: bold;">'.
 			$this->l('Please always perform a full manual backup of your files and database before starting any upgrade.').'</span><br />'.
 			$this->l('Double-check the integrity of your backup and that you can easily manually roll-back if necessary.').'<br />'.
-			$this->l('If you don\'t know how to proceed, ask your hosting provider.').'</p>			
+			$this->l('If you do not know how to proceed, ask your hosting provider.').'</p>			
 		</fieldset>';
 		
 		/* Make sure the user has configured the upgrade options, or set default values */
@@ -4281,7 +4293,7 @@ txtError[37] = "'.$this->l('The config/defines.inc.php file was not found. Where
 		$js = '';
 
 		if (method_exists('Tools','getAdminTokenLite'))
-			$token_preferences = Tools::getAdminTokenLite('AdminPreferences');
+			$token_preferences = Tools14::getAdminTokenLite('AdminPreferences');
 		else
 			$token_preferences = Tools14::getAdminTokenLite('AdminPreferences');
 
@@ -4308,7 +4320,7 @@ function updateInfoStep(msg){
 }
 
 function addError(arrError){
-	if (arrError.length)
+	if (typeof(arrError) != "undefined" && arrError.length)
 	{
 		$("#errorDuringUpgrade").show();
 		for(i=0;i<arrError.length;i++)
@@ -4449,7 +4461,7 @@ $(document).ready(function(){
 		if($(this).val() != 0)
 		{
 			$(this).after("<a class=\"button confirmBeforeDelete\" href=\"index.php?tab=AdminSelfUpgrade&token='
-			.Tools::getAdminToken('AdminSelfUpgrade'.(int)(Tab::getIdFromClassName('AdminSelfUpgrade')).(int)$cookie->id_employee)
+			.Tools14::getAdminToken('AdminSelfUpgrade'.(int)(Tab::getIdFromClassName('AdminSelfUpgrade')).(int)$cookie->id_employee)
 			.'&amp;deletebackup&amp;name="+$(this).val()+"\">'
 			.'<img src=\"../img/admin/disabled.gif\" />'.$this->l('Delete').'</a>");
 			$(this).next().click(function(e){
@@ -4486,9 +4498,13 @@ $(document).ready(function(){
 function showConfigResult(msg, type){
 	if (type == null)
 		type = "conf";
-	$("#configResult").html("<div class=\""+type+"\">"+msg+"</div>").show().delay(5000).fadeOut("slow", function() {
-		location.reload();
-	});
+	$("#configResult").html("<div class=\""+type+"\">"+msg+"</div>").show();
+	if (type == "conf")
+	{
+		$("#configResult").delay(3000).fadeOut("slow", function() {
+			location.reload();
+		});
+	}
 }
 
 // reuse previousParams, and handle xml returns to calculate next step
@@ -4583,8 +4599,14 @@ function afterUpgradeComplete(res)
 			.show("slow");
 		$("#infoStep").html("<h3>'.$this->l('Upgrade Complete, but warnings has been found.', 'AdminSelfUpgrade', true).'</h3>");
 	}
-	
-	todo_list = ["'.$this->l('Don\'t forget to reactivate your shop !', 'AdminSelfUpgrade', true).'", "'.$this->l('Please check your front-office theme is functionnal (try to make an order, check theme)').'"];
+
+	todo_list = [
+		"'.$this->l('Cookies have changed, you will need to log in again once you refreshed the page', 'AdminSelfUpgrade', true).'",
+		"'.$this->l('Javascript and CSS files have changed, please clear your browser cache with CTRL-F5', 'AdminSelfUpgrade', true).'",
+		"'.$this->l('Please check that your front office theme is functionnal (try to create an account, place an order...)', 'AdminSelfUpgrade', true).'",
+		"'.$this->l('Product images does not appear in the front office? Try regenerating the thumbnails in Preferences > Images', 'AdminSelfUpgrade', true).'",
+		"'.$this->l('Do not forget to reactivate your shop once you have checked everything!', 'AdminSelfUpgrade', true).'",
+	];
 		
 	todo_ul = "<ul>";
 	$("#upgradeResultToDoList")
@@ -4983,14 +5005,12 @@ $(document).ready(function(){
 		});
 
 		function switch_to_advanced(){
-			$("input[name=btn_adv]")
-				.val("'.$this->l('Less options').'");
+			$("input[name=btn_adv]").val("'.$this->l('Less options', 'AdminTab', true, false).'");
 			$("#advanced").show();
 		}
 
 		function switch_to_normal(){
-			$("input[name=btn_adv]")
-				.val("'.$this->l('More options (Expert mode)').'");
+			$("input[name=btn_adv]").val("'.$this->l('More options (Expert mode)', 'AdminTab', true, false).'");
 			$("#advanced").hide();
 		}
 
@@ -5327,5 +5347,4 @@ $(document).ready(function()
 		else
 			ini_set('display_errors', 'off');
 	}
-
 }

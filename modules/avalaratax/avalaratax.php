@@ -39,9 +39,8 @@ class AvalaraTax extends Module
 	{
 		$this->name = 'avalaratax';
 		$this->tab = 'billing_invoicing';
-		$this->version = '3.0.7';
+		$this->version = '3.1.1';
 		$this->author = 'PrestaShop';
-		$this->limited_countries = array('us', 'ca');
 		parent::__construct();
 
 		$this->displayName = $this->l('Avalara - AvaTax');
@@ -175,12 +174,13 @@ class AvalaraTax extends Module
 	{
 		return array(
 			'Tax.php' => array(
-				'source' => 'override/classes/tax/Tax.php',
+				'source' => 'override-14x/classes/Tax.php',
 				'dest' => 'override/classes/Tax.php',
 				'md5' => array(
 					'1.1' => '5d9e318d673bfa723b02f14f952e0a7a',
 					'2.3' => '86c900cd6fff286aa6a52df2ff72228a',
 					'3.0.2' => 'c558c0b15877980134e301af34e42c3e',
+					'3.1.1' => '38acdbc8b4d57d7e5110d589a78796bc',
 				)
 			),
 			'Cart.php' => array(
@@ -493,14 +493,14 @@ class AvalaraTax extends Module
 	/******************************************************************/
 	public function getContent()
 	{
-		$html = '';
 		$buffer = '';
 		
 		if (version_compare(_PS_VERSION_,'1.5','>'))
 			$this->context->controller->addJQueryPlugin('fancybox');
 		else
-			$html .= '<script type="text/javascript" src="'.__PS_BASE_URI__.'js/jquery/jquery.fancybox-1.3.4.js"></script>
+			$buffer .= '<script type="text/javascript" src="'.__PS_BASE_URI__.'js/jquery/jquery.fancybox-1.3.4.js"></script>
 		  	<link type="text/css" rel="stylesheet" href="'.__PS_BASE_URI__.'css/jquery.fancybox-1.3.4.css" />';
+
 		if (Tools::isSubmit('SubmitAvalaraTaxSettings'))
 		{
 			Configuration::updateValue('AVALARATAX_ACCOUNT_NUMBER', Tools::getValue('avalaratax_account_number'));
@@ -592,7 +592,6 @@ class AvalaraTax extends Module
 			$countryList[] = array('id' => $country['id_country'], 'name' => $country['name'], 'iso_code' => $country['iso_code']);
 
 		$buffer .= '<link href="'.$this->_path.'css/avalara.css" rel="stylesheet" type="text/css">
-
 		<script type="text/javascript">
 			/* Fancybox */
 			$(\'a.avalara-video-btn\').live(\'click\', function(){
@@ -650,10 +649,10 @@ $(\'#avalaratax_state\').html(\'\');
 		if (data != 0)
 		{
 		    $.each(data[iso_code], function(i, item){
-if (default_state == item.iso_code)
-			$(\'#avalaratax_state\').append(\'<option  selected="selected" value="\'+item.iso_code+\'">\'+item.name+\'</option>\');
+if (default_state == item.state_iso_code)
+			$(\'#avalaratax_state\').append(\'<option  selected="selected" value="\'+item.state_iso_code+\'">\'+item.name+\'</option>\');
 else
-			$(\'#avalaratax_state\').append(\'<option  value="\'+item.iso_code+\'">\'+item.name+\'</option>\');
+			$(\'#avalaratax_state\').append(\'<option  value="\'+item.state_iso_code+\'">\'+item.name+\'</option>\');
 			$(\'#avalaratax_state\').show();
 			$(\'#avalaratax_label_state\').show();
 		    });
@@ -670,7 +669,7 @@ else
 
 		</script>
 		<div class="avalara-wrap">
-			<p class="avalara-intro"><a href="http://www.avalara.com/e-commerce/prestashop" class="avalara-logo" target="_blank"><img src="'.$this->_path.'img/avalara_logo.png" alt="Avalara" border="0" /></a><a href="http://www.avalara.com/e-commerce/prestashop" class="avalara-link" target="_blank">'.$this->l('Create an account').'</a>'.$this->l('Avalara and PrestaShop have partnered to provide the easiest way for you to accurately calculate and file sales tax.').'</p>
+			<p class="avalara-intro"><a href="http://www.avalara.com/e-commerce/prestashop" class="avalara-logo" target="_blank"><img src="'.$this->_path.'img/avalara_logo.png" alt="Avalara" border="0" /></a><a href="http://www.avalara.com/e-commerce/prestashop" class="avalara-link" target="_blank">'.$this->l('Create an account').'</a>'.$this->l('Avalara and PrestaShop have partnered to provide the easiest way for you to accurately calculate and fill sales tax.').'</p>
 			<div class="clear"></div>
 			<div class="avalara-content">
 				<div class="avalara-video">

@@ -45,7 +45,7 @@ class Jirafe extends Module
 
         $this->name = 'jirafe';
         $this->tab = 'analytics_stats';
-        $this->version = '1.2';
+        $this->version = '1.2.2';
 
         //The constructor must be called after the name has been set, but before you try to use any functions like $this->l()
         parent::__construct();
@@ -125,32 +125,35 @@ class Jirafe extends Module
         $app = $ps->getApplication();
 
         // Check if there is a token (probably not since we are installing) and if not, get one from Jirafe
-        if (empty($app['token'])) {
+        if (isset($app['token']) && empty($app['token'])) {
             try {
                 $app = $jf->applications()->create($app['name'], $app['url'], 'prestashop', _PS_VERSION_, JIRAFE_MODULE_VERSION);
+
+	            // Set the application information in Prestashop
+	            $ps->setApplication($app);
+	            // Set the token in the Jirafe client for later
+	            $jf->setToken($app['token']);
             } catch (Exception $e) {
                 $this->_errors[] = $this->l('The Jirafe Web Service is unreachable. Please try again when the connection is restored.').' '.$this->l('token');
             }
-
-            // Set the application information in Prestashop
-            $ps->setApplication($app);
-            // Set the token in the Jirafe client for later
-            $jf->setToken($app['token']);
         }
 
-        // Sync for the first time
-        try {
-            $results = $jf->applications($app['app_id'])->resources()->sync($ps->getSites(), $ps->getUsers(), array(
-                'platform_type' => 'prestashop',
-                'platform_version' => _PS_VERSION_,
-                'plugin_version' => JIRAFE_MODULE_VERSION,
-                'opt_in' => false // @TODO, enable onboarding when ready
-            ));
-        } catch (Exception $e) {
-            $this->_errors[] = $this->l('The Jirafe Web Service is unreachable. Please try again when the connection is restored.').' '.$this->l('Sync');
-        }
-
-        if ((bool)count($this->_errors) === true)
+        if (isset($app['app_id']))
+        {
+	        // Sync for the first time
+	        try {
+	            $results = $jf->applications($app['app_id'])->resources()->sync($ps->getSites(), $ps->getUsers(), array(
+	                'platform_type' => 'prestashop',
+	                'platform_version' => _PS_VERSION_,
+	                'plugin_version' => JIRAFE_MODULE_VERSION,
+	                'opt_in' => false // @TODO, enable onboarding when ready
+	            ));
+	        } catch (Exception $e) {
+	            $this->_errors[] = $this->l('The Jirafe Web Service is unreachable. Please try again when the connection is restored.').' '.$this->l('Sync');
+	        }
+	    }
+	    
+        if (is_array($this->_errors) && (count($this->_errors) > 0))
 		{
         	$errors = implode(',<br />', $this->_errors);		  
 			echo '<div class="error">'.Tools::safeOutput($errors).'</div>';

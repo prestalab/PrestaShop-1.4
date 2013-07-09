@@ -13,8 +13,6 @@ $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_4b7a5f5ef515647df56
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_e76c51a0c4eb3d9340253b8449b5199c'] = 'Vendre sur toutes les Места de MarchГ© (PriceMinister, Amazon, RueDuCommerce, eBay, Cdiscount, Fnac, и т.д...) ';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_327a7a1c3febcbe4147bf84549abaa50'] = 'RГ©-средство-импорта vos commandes Места de MarchГ© directement dans votre Prestashop ';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_8fad66d3e465cca2169e8aaf12bace78'] = 'CrГ©er в массе des campagnes Adwords льют chacune de vos микрофиши produit. ';
-$_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_6776fe97638afeea9fda82763f14291d'] = 'partir de 69в‚ ¬ H.T/mois.  ';
-$_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_5537bb898aa293ff24ba6e8394492f84'] = 'BГ©nГ©ficiez de 1 mois de тестируют gratuit и sans обязательство. ';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_596b4cc9a40456e933a43b6e20758e5f'] = 'Модуль Ce vous оценка offert паритет, Делая покупки Поток и оценка, годная для использования через une souscription mensuelle au служба. Envoyez-разум simplement ce formulaire: ';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_b219a0ad7d11c904dc79f9f00bb6d941'] = 'Имя du сайт ';
 $_MODULE['<{shoppingfluxexport}prestashop>shoppingfluxexport_d4700b697a54fbd43a1a613d32694e7f'] = 'Имя ';

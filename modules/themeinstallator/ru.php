@@ -15,7 +15,6 @@ $_MODULE['<{themeinstallator}prestashop>themeinstallator_5fd13c2b89a6eaaa4614bfe
 $_MODULE['<{themeinstallator}prestashop>themeinstallator_0dea6caeb83e5c11d3678284e64ebed8'] = 'Ошибка во время загрузки файла';
 $_MODULE['<{themeinstallator}prestashop>themeinstallator_c186217583219f4cd040d9ee8d388ffb'] = 'Ошибка при извлечении';
 $_MODULE['<{themeinstallator}prestashop>themeinstallator_0210b6456cdccad569cb56026bb0f689'] = 'Файл конфигурации нарушен';
-$_MODULE['<{themeinstallator}prestashop>themeinstallator_416fa810b877005364d8dc1f61a2b7f0'] = 'Следует выбрать по крайней мере одну тему ';
 $_MODULE['<{themeinstallator}prestashop>themeinstallator_a7eca295291f53a23ab7ba0a9c7fd9de'] = 'Эта функциональность была отключена. ';
 $_MODULE['<{themeinstallator}prestashop>themeinstallator_5b6cf869265c13af8566f192b4ab3d2a'] = 'Документация';
 $_MODULE['<{themeinstallator}prestashop>themeinstallator_6bdbe5a8a9f446d4d758ee4c22648771'] = 'Вы можете проверить документацию';

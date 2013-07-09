@@ -1043,7 +1043,8 @@ class Tools14
 	*/
 	public static function dateYears()
 	{
-		for ($i = date('Y') - 10; $i >= 1900; $i--)
+		$tab = array();
+		for ($i = date('Y'); $i >= 1900; $i--)
 			$tab[] = $i;
 		return $tab;
 	}
@@ -1251,6 +1252,8 @@ class Tools14
 
 	public static function file_get_contents($url, $use_include_path = false, $stream_context = null, $curl_timeout = 5)
 	{
+		if (!extension_loaded('openssl') AND strpos('https://', $url) === true)
+			$url = str_replace('https', 'http', $url);
 		if ($stream_context == null && preg_match('/^https?:\/\//', $url))
 			$stream_context = @stream_context_create(array('http' => array('timeout' => $curl_timeout)));
 		if (in_array(ini_get('allow_url_fopen'), array('On', 'on', '1')) || !preg_match('/^https?:\/\//', $url))
@@ -1264,7 +1267,7 @@ class Tools14
 			curl_setopt($curl, CURLOPT_TIMEOUT, $curl_timeout);
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 			$opts = stream_context_get_options($stream_context);
-			if (isset($opts['http']['method']) && Tools::strtolower($opts['http']['method']) == 'post')
+			if (isset($opts['http']['method']) && self::strtolower($opts['http']['method']) == 'post')
 			{
 				curl_setopt($curl, CURLOPT_POST, true);
 				if (isset($opts['http']['content']))
@@ -1283,7 +1286,7 @@ class Tools14
 
 	public static function simplexml_load_file($url, $class_name = null)
 	{
-		return @simplexml_load_string(Tools::file_get_contents($url), $class_name);
+		return @simplexml_load_string(self::file_get_contents($url), $class_name);
 	}
 
 	public static function minifyHTML($html_content)
@@ -2047,7 +2050,7 @@ FileETag INode MTime Size
 		}
 		else
 		{
-			require_once(dirname(__FILE__).'/../tools/pclzip/pclzip.lib.php');
+			require_once(dirname(__FILE__).'/pclzip.lib.php');
 			$zip = new PclZip($fromFile);
 			return ($zip->privCheckFormat() === true);
 		}
@@ -2070,7 +2073,7 @@ FileETag INode MTime Size
 		}
 		else
 		{
-			require_once(dirname(__FILE__).'/../tools/pclzip/pclzip.lib.php');
+			require_once(dirname(__FILE__).'/pclzip.lib.php');
 			$zip = new PclZip($fromFile);
 			$list = $zip->extract(PCLZIP_OPT_PATH, $toDir);
 			foreach ($list as $extractedFile)
@@ -2233,17 +2236,6 @@ FileETag INode MTime Size
 				if (strpos($module, $name) !== false)
 					return true;
 			}
-		}
-		else{
-			// If apache_get_modules does not exists,
-			// one solution should be parsing httpd.conf, 
-			// but we could simple parse phpinfo(INFO_MODULES) return string
-			ob_start();
-			phpinfo(INFO_MODULES);
-			$phpinfo = ob_get_contents();
-			ob_end_clean();
-			if (strpos($phpinfo, $name) !== false)
-				return true;
 		}
 		return false;
 	}

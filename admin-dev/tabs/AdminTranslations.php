@@ -136,14 +136,19 @@ class AdminTranslations extends AdminTab
 	{
 		global $currentIndex;
 
-		if (!($fromLang = strval(Tools::getValue('fromLang'))) OR !($toLang = strval(Tools::getValue('toLang'))))
+		if (!($fromLang = Tools::getValue('fromLang')) OR !($toLang = Tools::getValue('toLang')))
 			$this->_errors[] = $this->l('you must select 2 languages in order to copy data from one to another');
-		elseif (!($fromTheme = strval(Tools::getValue('fromTheme'))) OR !($toTheme = strval(Tools::getValue('toTheme'))))
+		elseif (!($fromTheme = Tools::getValue('fromTheme')) OR !($toTheme = Tools::getValue('toTheme')))
 			$this->_errors[] = $this->l('you must select 2 themes in order to copy data from one to another');
 		elseif (!Language::copyLanguageData(Language::getIdByIso($fromLang), Language::getIdByIso($toLang)))
 			$this->_errors[] = $this->l('an error occurred while copying data');
 		elseif ($fromLang == $toLang AND $fromTheme == $toTheme)
 			$this->_errors[] = $this->l('nothing to copy! (same language and theme)');
+		else
+		{
+			if (!is_dir(_PS_ALL_THEMES_DIR_.$fromTheme) || !is_dir(_PS_ALL_THEMES_DIR_.$toTheme))
+				$this->errors[] = $this->l('Theme(s) not found');
+		}
 		if (sizeof($this->_errors))
 			return;
 
@@ -274,18 +279,46 @@ class AdminTranslations extends AdminTab
 			include_once(PS_ADMIN_DIR.'/../tools/tar/Archive_Tar.php');
 			$gz = new Archive_Tar($_FILES['file']['tmp_name'], true);
 			$iso_code = str_replace('.gzip', '', $_FILES['file']['name']);
-			$files_list = $gz->listContent();
-
-			if ($gz->extract(_PS_TRANSLATIONS_DIR_.'../', false))
+			if (Validate::isLangIsoCode($iso_code))
 			{
-				$this->checkAndAddMailsFiles($iso_code, $files_list);
-				if (Validate::isLanguageFileName($_FILES['file']['name']))
-					if (!Language::checkAndAddLanguage($iso_code))
-						$conf = 20;
-				Tools::redirectAdmin($currentIndex.'&conf='.(isset($conf) ? $conf : '15').'&token='.$this->token);
+				$files_list = $gz->listContent();
+				$uniqid = uniqid();
+				$sandbox = _PS_CACHE_DIR_.'sandbox'.DIRECTORY_SEPARATOR.$uniqid.DIRECTORY_SEPARATOR;
+				if ($gz->extract($sandbox, false))
+				{
+					foreach ($files_list as $file2check)
+					{
+						//don't validate index.php, will be overwrite when extract in translation directory
+						if (pathinfo($file2check['filename'], PATHINFO_BASENAME) == 'index.php')
+							continue;
+						
+						if (preg_match('@^[0-9a-z-_/\\\\]+\.php$@i', $file2check['filename']))
+						{
+							if (!AdminTranslations::checkTranslationFile(file_get_contents($sandbox.$file2check['filename'])))
+								$this->_errors[] = sprintf(Tools::displayError('Validation failed for: %s'), $file2check['filename']);
+						}
+						elseif (is_file($sandbox.$file2check['filename']) && !preg_match('@^[0-9a-z-_/\\\\]+\.(html|tpl|txt)$@i', $file2check['filename']))
+							$this->_errors[] = sprintf(Tools::displayError('Unidentified file found: %s'), $file2check['filename']);
+					}
+					Tools::deleteDirectory($sandbox, true);
+				}
+				
+				if (count($this->_errors))
+					return false;
+
+				if ($gz->extract(_PS_TRANSLATIONS_DIR_.'../', false))
+				{
+					$this->checkAndAddMailsFiles($iso_code, $files_list);
+					if (Validate::isLanguageFileName($_FILES['file']['name']))
+						if (!Language::checkAndAddLanguage($iso_code))
+							$conf = 20;
+					Tools::redirectAdmin($currentIndex.'&conf='.(isset($conf) ? $conf : '15').'&token='.$this->token);
+				}
+				else
+					$this->_errors[] = Tools::displayError('Archive cannot be extracted.');
 			}
 			else
-				$this->_errors[] = Tools::displayError('Archive cannot be extracted.');
+				$this->_errors[] = Tools::displayError('Iso code invalid');
 		}
 	}
 
@@ -1191,7 +1224,7 @@ class AdminTranslations extends AdminTab
 					$filesize = filesize($fn);
 					if (!$filesize)
 						continue;
-					preg_match_all('/Tools::displayError\(\''._PS_TRANS_PATTERN_.'\'(, ?(true|false))?\)/U', fread(fopen($fn, 'r'), $filesize), $matches);
+					preg_match_all('/Tools::displayError\(\''._PS_TRANS_PATTERN_.'\'(, ?(.+))?\)/U', fread(fopen($fn, 'r'), $filesize), $matches);
 					foreach($matches[1] AS $key)
 						$stringToTranslate[$key] = (key_exists(md5($key), $_ERRORS)) ? html_entity_decode($_ERRORS[md5($key)], ENT_COMPAT, 'UTF-8') : '';
 				}
@@ -1530,6 +1563,9 @@ class AdminTranslations extends AdminTab
 	{
 		global $cookie, $currentIndex;
 		
+		if (!Validate::isLangIsoCode($lang))
+			die(Tools::displayError());
+		
 		$core_mails = array();
 		$module_mails = array();
 		$theme_mails = array();
@@ -1638,7 +1674,7 @@ class AdminTranslations extends AdminTab
 				$str_output .= $this->displayMailContent($mails, $subject_mail, $obj_lang, 'theme_'.Tools::strtolower($theme_or_module_name), $title, ($theme_or_module_name != 'theme_mail' ? $theme_or_module_name : false));
 			}
 		}
-		$str_output .= '<input type="hidden" name="lang" value="'.$lang.'" /><input type="hidden" name="type" value="'.Tools::getValue('type').'" />';
+		$str_output .= '<input type="hidden" name="lang" value="'.Tools::safeOutput($lang).'" /><input type="hidden" name="type" value="'.Tools::safeOutput(Tools::getValue('type')).'" />';
 		$str_output .= $this->displaySubmitButtons(Tools::getValue('type'));
 		$str_output .= '<br /><br />';
 		$str_output .= '</form>';
@@ -1787,6 +1823,9 @@ class AdminTranslations extends AdminTab
 	{
 		global $currentIndex, $_MODULES;
 
+		if (!Validate::isLangIsoCode($lang))
+			die(Tools::displayError());
+			
 		$array_lang_src = Language::getLanguages(false);
 		$str_output = '';
 
@@ -1836,7 +1875,7 @@ class AdminTranslations extends AdminTab
 				$str_output .= '
 				<form method="post" action="'.$currentIndex.'&submitTranslationsModules=1&token='.$this->token.'" class="form">';
 				$str_output .= $this->displayToggleButton();
-				$str_output .= '<input type="hidden" name="lang" value="'.$lang.'" /><input type="submit" name="submitTranslationsModules" value="'.$this->l('Update translations').'" class="button" /><br /><br />';
+				$str_output .= '<input type="hidden" name="lang" value="'.Tools::safeOutput($lang).'" /><input type="submit" name="submitTranslationsModules" value="'.$this->l('Update translations').'" class="button" /><br /><br />';
 
 				if (count($this->modules_translations) > 1) 
 				{
@@ -1971,6 +2010,45 @@ class AdminTranslations extends AdminTab
 			$str_output .= '<br /><input type="submit" name="submitTranslationsPDF" value="'.$this->l('Update translations').'" class="button" /></form>';
 		}
 		echo $str_output;
+	}
+	
+	public static function checkTranslationFile($content)
+	{
+		$lines = array_map('trim', explode("\n", $content));
+		$global = false;
+		foreach ($lines as $line)
+		{
+			// PHP tags
+			if (in_array($line, array('<?php', '?>', '')))
+				continue;
+			
+			// Global variable declaration
+			if (!$global && preg_match('/^global\s+\$([a-z0-9-_]+)\s*;$/i', $line, $matches))
+			{
+				$global = $matches[1];
+				continue;
+			}
+			// Global variable initialization
+			if ($global != false && preg_match('/^\$'.preg_quote($global, '/').'\s*=\s*array\(\s*\)\s*;$/i', $line))
+				continue;
+				
+			// Global variable initialization without declaration
+			if (!$global && preg_match('/^\$([a-z0-9-_]+)\s*=\s*array\(\s*\)\s*;$/i', $line, $matches))
+			{
+				$global = $matches[1];
+				continue;
+			}
+			
+			// Assignation
+			if (preg_match('/^\$'.preg_quote($global, '/').'\[\''._PS_TRANS_PATTERN_.'\'\]\s*=\s*\''._PS_TRANS_PATTERN_.'\'\s*;$/i', $line))
+				continue;
+				
+			// Sometimes the global variable is returned...
+			if (preg_match('/^return\s+\$'.preg_quote($global, '/').'\s*;$/i', $line, $matches))
+				continue;
+			return false;
+		}
+		return true;
 	}
 
 	/**

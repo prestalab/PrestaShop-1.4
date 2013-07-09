@@ -32,7 +32,7 @@ class MailCore
 	public static function Send($id_lang, $template, $subject, $templateVars, $to,
 		$toName = null, $from = null, $fromName = null, $fileAttachment = null, $modeSMTP = null, $templatePath = _PS_MAIL_DIR_, $die = false)
 	{
-		$configuration = Configuration::getMultiple(array('PS_SHOP_EMAIL', 'PS_MAIL_METHOD', 'PS_MAIL_SERVER', 'PS_MAIL_USER', 'PS_MAIL_PASSWD', 'PS_SHOP_NAME', 'PS_MAIL_SMTP_ENCRYPTION', 'PS_MAIL_SMTP_PORT', 'PS_MAIL_METHOD', 'PS_MAIL_TYPE'));
+		$configuration = Configuration::getMultiple(array('PS_SHOP_EMAIL', 'PS_MAIL_METHOD', 'PS_MAIL_SERVER', 'PS_MAIL_USER', 'PS_MAIL_PASSWD', 'PS_SHOP_NAME', 'PS_MAIL_SMTP_ENCRYPTION', 'PS_MAIL_SMTP_PORT', 'PS_MAIL_TYPE'));
 
 		if (!isset($configuration['PS_MAIL_SMTP_ENCRYPTION']))
 			$configuration['PS_MAIL_SMTP_ENCRYPTION'] = 'off';
@@ -44,13 +44,13 @@ class MailCore
 			$from = $configuration['PS_SHOP_EMAIL'];
 		if (!Validate::isEmail($from))
 			$from = null;
-
+		
 		// $fromName is not that important, no need to die if it is not valid
 		if (!isset($fromName) || !Validate::isMailName($fromName))
 			$fromName = $configuration['PS_SHOP_NAME'];
 		if (!Validate::isMailName($fromName))
 			$fromName = null;
-
+			
 		if (!is_array($to) && !Validate::isEmail($to))
 		{
 	 		Tools::dieOrLog(Tools::displayError('Error: parameter "to" is corrupted'), $die);
@@ -162,7 +162,7 @@ class MailCore
 				Tools::dieOrLog(Tools::displayError('Error - The following email template is missing:').' '.$templatePath.$template.'.txt', $die);
 				return false;
 			}
-
+			
 			$templateHtml = file_get_contents($templatePath.$template.'.html');
 			$templateTxt = strip_tags(html_entity_decode(file_get_contents($templatePath.$template.'.txt'), null, 'utf-8'));
 
@@ -176,7 +176,8 @@ class MailCore
 			/* Create mail && attach differents parts */
 			$message = Swift_Message::newInstance('['.Configuration::get('PS_SHOP_NAME').'] '.$subject)
 				->setFrom(array($from=>$fromName))
-				->setTo($to);
+				->setTo($to)
+				->setId(Mail::generateId());
 			$templateVars['{shop_logo}'] = (file_exists(_PS_IMG_DIR_.'logo_mail.jpg')) ?
 				$message->embed(Swift_Image::fromPath((_PS_IMG_DIR_.'logo_mail.jpg'))) : ((file_exists(_PS_IMG_DIR_.'logo.jpg')) ?
 					$message->embed(Swift_Image::fromPath((_PS_IMG_DIR_.'logo.jpg'))) : '');
@@ -267,5 +268,17 @@ class MailCore
 			$str = $string;
 
 		return str_replace('"', '&quot;', stripslashes($str));
+	}
+	
+	/* Rewrite of Swift_Message::generateId() without getmypid() */
+	protected static function generateId($idstring = null)
+	{
+		$midparams =  array(
+			"utctime" => gmstrftime("%Y%m%d%H%M%S"),
+			"randint" => mt_rand(),
+			"customstr" => (preg_match("/^(?<!\\.)[a-z0-9\\.]+(?!\\.)\$/iD", $idstring) ? $idstring : "swift") ,
+			"hostname" => (isset($_SERVER["SERVER_NAME"]) ? $_SERVER["SERVER_NAME"] : php_uname("n")),
+		);
+		return vsprintf("<%s.%d.%s@%s>", $midparams);
 	}
 }

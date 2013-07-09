@@ -318,15 +318,19 @@ abstract class AdminTabCore
 
 		$table_fields = Db::getInstance()->ExecuteS('SHOW COLUMNS FROM '.pSQL(_DB_PREFIX_.$this->table));
 		$irow = 0;
+		$customerNotRequiredFields = array('note', 'active', 'is_guest', 'deleted', 'date_add', 'date_upd', 'id_default_group', 'last_passwd_gen', 'ip_registration_newsletter', 'secure_key', 'newsletter_date_add');
+		$manufacturerNotRequiredFields = array('id_state', 'id_customer', 'id_manufacturer', 'id_supplier', 'date_add', 'date_upd', 'active', 'deleted');		
 		foreach ($table_fields as $field)
 		{
-			if ($this->className == 'Customer' && $field['Field'] == 'note')
+			if ($this->className == 'Customer' && in_array($field['Field'], $customerNotRequiredFields))
 				continue;
+			elseif ($this->className == 'Manufacturer' && in_array($field['Field'], $manufacturerNotRequiredFields))
+				continue;				
 			if (in_array($field['Field'], $required_class_fields))
 				continue;
 			echo '<tr class="'.($irow++ % 2 ? 'alt_row' : '').'">
 						<td class="noborder"><input type="checkbox" name="fieldsBox[]" value="'.$field['Field'].'" '.(in_array($field['Field'], $required_fields) ? 'checked="checked"' : '').' /></td>
-						<td>'.$field['Field'].'</td>
+						<td>'.str_replace('id_', '', $field['Field']).'</td>
 					</tr>';
 		}
 		echo '</table><br />
@@ -576,7 +580,7 @@ abstract class AdminTabCore
 						}
 						elseif ($object->delete())
 							Tools::redirectAdmin($currentIndex.'&conf=1&token='.$token);
-						$this->_errors[] = Tools::displayError('An error occurred during deletion.');
+						$this->_errors[] = Tools::displayError('An error occurred during deletion of ').$this->table.'.';
 					}
 				}
 				else
@@ -653,7 +657,7 @@ abstract class AdminTabCore
 
 						if ($result)
 							Tools::redirectAdmin($currentIndex.'&conf=2&token='.$token);
-						$this->_errors[] = Tools::displayError('An error occurred while deleting selection.');
+						$this->_errors[] = Tools::displayError('An error occurred while deleting selection of ').$this->table.'.';
 					}
 				}
 				else
@@ -934,7 +938,14 @@ abstract class AdminTabCore
 
 	protected function uploadImage($id, $name, $dir, $ext = false)
 	{
-		if (isset($_FILES[$name]['tmp_name']) AND !empty($_FILES[$name]['tmp_name']))
+		if (isset($_FILES[$name]) && (int)$_FILES[$name]['error'] === 1)
+		{
+			$max_upload = (int)ini_get('upload_max_filesize');
+			$max_post = (int)ini_get('post_max_size');
+			$upload_mb = min($max_upload, $max_post);
+			$this->_errors[] = $this->l('The file').' <b>'.$_FILES[$name]['name'].'</b> '.$this->l('exceeds the size allowed by the server, this limit is set to').' <b>'.$upload_mb.$this->l('Mb').'</b>';
+		}	
+		elseif (isset($_FILES[$name]['tmp_name']) AND !empty($_FILES[$name]['tmp_name']))
 		{
 			// Delete old image
 			if (Validate::isLoadedObject($object = $this->loadObject()))
@@ -995,9 +1006,11 @@ abstract class AdminTabCore
 		if (isset($this->fieldImageSettings['name']) AND isset($this->fieldImageSettings['dir']))
 			return $this->uploadImage($id, $this->fieldImageSettings['name'], $this->fieldImageSettings['dir'].'/');
 		elseif (!empty($this->fieldImageSettings))
+		{
 			foreach ($this->fieldImageSettings as $image)
 				if (isset($image['name']) AND isset($image['dir']))
 					$this->uploadImage($id, $image['name'], $image['dir'].'/');
+		}
 		return !sizeof($this->_errors) ? true : false;
 	}
 
@@ -1179,7 +1192,7 @@ abstract class AdminTabCore
 		$sqlTable = $this->table == 'order' ? 'orders' : $this->table;
 
 		/* Query in order to get results with all fields */
-		$sql = 'SELECT SQL_CALC_FOUND_ROWS
+		$sql = 'SELECT SQL_CALC_FOUND_ROWS 
 			'.($this->_tmpTableFilter ? ' * FROM (SELECT ' : '').'
 			'.($this->lang ? 'b.*, ' : '').'a.*'.(isset($this->_select) ? ', '.$this->_select.' ' : '').'
 			FROM `'._DB_PREFIX_.$sqlTable.'` a
@@ -1195,8 +1208,7 @@ abstract class AdminTabCore
 		if (!($this->_list = Db::getInstance()->ExecuteS($sql)))
 			$this->_list_error = Db::getInstance()->getMsgError();
 		else
-			$this->_listTotal = Db::getInstance()->getValue('SELECT FOUND_ROWS() AS `'._DB_PREFIX_.$this->table.'`');
-
+			$this->_listTotal = Db::getInstance()->getValue('SELECT FOUND_ROWS() AS `'.md5($sql).'`');
 	}
 
 	/**
@@ -1260,29 +1272,33 @@ abstract class AdminTabCore
 			<tr>
 				<td style="vertical-align: bottom;">
 					<span style="float: left;">';
-
-		/* Determine current page number */
-		$page = (int)(Tools::getValue('submitFilter'.$this->table));
-		if (!$page) $page = 1;
-		if ($page > 1)
+		if ($this->table != 'order_return_state')
+		{
+			/* Determine current page number */
+			$page = (int)(Tools::getValue('submitFilter'.$this->table));
+			if (!$page) $page = 1;
+			if ($page > 1)
+				echo '
+							<input type="image" src="../img/admin/list-prev2.gif" onclick="getE(\'submitFilter'.$this->table.'\').value=1"/>
+							&nbsp; <input type="image" src="../img/admin/list-prev.gif" onclick="getE(\'submitFilter'.$this->table.'\').value='.($page - 1).'"/> ';
+			echo $this->l('Page').' <b>'.$page.'</b> / '.$totalPages;
+			if ($page < $totalPages)
+				echo '
+							<input type="image" src="../img/admin/list-next.gif" onclick="getE(\'submitFilter'.$this->table.'\').value='.($page + 1).'"/>
+							 &nbsp;<input type="image" src="../img/admin/list-next2.gif" onclick="getE(\'submitFilter'.$this->table.'\').value='.$totalPages.'"/>';
+			echo '			| '.$this->l('Display').'
+							<select name="pagination">';
+			/* Choose number of results per page */
+			$selectedPagination = Tools::getValue('pagination', (isset($cookie->{$this->table.'_pagination'}) ? $cookie->{$this->table.'_pagination'} : null));
+			foreach ($this->_pagination as $value)
+				echo '<option value="'.(int)($value).'"'.($selectedPagination == $value ? ' selected="selected"' : (($selectedPagination == null && $value == $this->_pagination[1]) ? ' selected="selected2"' : '')).'>'.(int)($value).'</option>';
 			echo '
-						<input type="image" src="../img/admin/list-prev2.gif" onclick="getE(\'submitFilter'.$this->table.'\').value=1"/>
-						&nbsp; <input type="image" src="../img/admin/list-prev.gif" onclick="getE(\'submitFilter'.$this->table.'\').value='.($page - 1).'"/> ';
-		echo $this->l('Page').' <b>'.$page.'</b> / '.$totalPages;
-		if ($page < $totalPages)
-			echo '
-						<input type="image" src="../img/admin/list-next.gif" onclick="getE(\'submitFilter'.$this->table.'\').value='.($page + 1).'"/>
-						 &nbsp;<input type="image" src="../img/admin/list-next2.gif" onclick="getE(\'submitFilter'.$this->table.'\').value='.$totalPages.'"/>';
-		echo '			| '.$this->l('Display').'
-						<select name="pagination">';
-		/* Choose number of results per page */
-		$selectedPagination = Tools::getValue('pagination', (isset($cookie->{$this->table.'_pagination'}) ? $cookie->{$this->table.'_pagination'} : null));
-		foreach ($this->_pagination as $value)
-			echo '<option value="'.(int)($value).'"'.($selectedPagination == $value ? ' selected="selected"' : (($selectedPagination == null && $value == $this->_pagination[1]) ? ' selected="selected2"' : '')).'>'.(int)($value).'</option>';
-		echo '
-						</select>
-						/ '.(int)($this->_listTotal).' '.$this->l('result(s)').'
-					</span>
+							</select>
+							/ '.(int)($this->_listTotal).' '.$this->l('result(s)').'
+						</span>
+					';
+		}
+		echo'
 					<span style="float: right;">
 						<input type="submit" name="submitReset'.$this->table.'" value="'.$this->l('Reset').'" class="button" />
 						<input type="submit" id="submitFilterButton_'.$this->table.'" name="submitFilter" value="'.$this->l('Filter').'" class="button" />
@@ -1306,7 +1322,7 @@ abstract class AdminTabCore
 			<script type="text/javascript" src="../js/admin-dnd.js"></script>
 			';
 		}
-		echo '<table'.(array_key_exists($this->identifier,$this->identifiersDnd) ? ' id="'.(((int)(Tools::getValue($this->identifiersDnd[$this->identifier], 1))) ? substr($this->identifier,3,strlen($this->identifier)) : '').'"' : '' ).' class="table'.((array_key_exists($this->identifier,$this->identifiersDnd) AND ($this->_orderBy != 'position 'AND $this->_orderWay != 'DESC')) ? ' tableDnD'  : '' ).'" cellpadding="0" cellspacing="0">
+		echo '<table'.(array_key_exists($this->identifier,$this->identifiersDnd) ? ' id="'.(((int)(Tools::getValue($this->identifiersDnd[$this->identifier], 1))) ? substr($this->identifier,3,strlen($this->identifier)) : '').'"' : '' ).' class="table'.((array_key_exists($this->identifier,$this->identifiersDnd) AND ($this->_listTotal >= 2 && $this->_orderBy != 'position 'AND $this->_orderWay != 'DESC')) ? ' tableDnD'  : '' ).'" cellpadding="0" cellspacing="0">
 			<thead>
 				<tr class="nodrag nodrop">
 					<th>';
@@ -1321,9 +1337,12 @@ abstract class AdminTabCore
 				// Cleaning links
 				if (Tools::getValue($this->table.'Orderby') && Tools::getValue($this->table.'Orderway'))
 					$currentIndex = preg_replace('/&'.$this->table.'Orderby=([a-z _]*)&'.$this->table.'Orderway=([a-z]*)/i', '', $currentIndex);
-				echo '	<br />
-						<a href="'.$currentIndex.'&'.$this->identifier.'='.(int)$id_cat.'&'.$this->table.'Orderby='.urlencode($key).'&'.$this->table.'Orderway=desc&token='.$token.'"><img border="0" src="../img/admin/down'.((isset($this->_orderBy) && ($key == $this->_orderBy) && ($this->_orderWay == 'DESC')) ? '_d' : '').'.gif" /></a>
-						<a href="'.$currentIndex.'&'.$this->identifier.'='.(int)$id_cat.'&'.$this->table.'Orderby='.urlencode($key).'&'.$this->table.'Orderway=asc&token='.$token.'"><img border="0" src="../img/admin/up'.((isset($this->_orderBy) && ($key == $this->_orderBy) && ($this->_orderWay == 'ASC')) ? '_d' : '').'.gif" /></a>';
+				if ($this->_listTotal >= 2)
+				{															
+					echo '	<br />
+							<a href="'.$currentIndex.'&'.$this->identifier.'='.(int)$id_cat.'&'.$this->table.'Orderby='.urlencode($key).'&'.$this->table.'Orderway=desc&token='.$token.'"><img border="0" src="../img/admin/down'.((isset($this->_orderBy) && ($key == $this->_orderBy) && ($this->_orderWay == 'DESC')) ? '_d' : '').'.gif" /></a>
+							<a href="'.$currentIndex.'&'.$this->identifier.'='.(int)$id_cat.'&'.$this->table.'Orderby='.urlencode($key).'&'.$this->table.'Orderway=asc&token='.$token.'"><img border="0" src="../img/admin/up'.((isset($this->_orderBy) && ($key == $this->_orderBy) && ($this->_orderWay == 'ASC')) ? '_d' : '').'.gif" /></a>';
+				}														
 			}
 			echo '	</th>';
 		}

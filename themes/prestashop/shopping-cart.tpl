@@ -122,7 +122,7 @@
 					{/if}
 					</td>
 				</tr>
-				<tr class="cart_total_voucher" {if $total_wrapping == 0}style="display: none;"{/if}>
+				<tr{if $total_wrapping == 0} style="display: none;"{/if}>
 					<td colspan="6">
 					{if $use_taxes}
 						{if $priceDisplay}
@@ -214,11 +214,12 @@
 				{assign var='quantityDisplayed' value=0}
 				{* Display the product line *}
 				{include file="$tpl_dir./shopping-cart-product-line.tpl"}
-				{* Then the customized datas ones*}
+				{* Then the customized data *}
 				{if isset($customizedDatas.$productId.$productAttributeId)}
 					{foreach from=$customizedDatas.$productId.$productAttributeId key='id_customization' item='customization'}
-						<tr id="product_{$product.id_product}_{$product.id_product_attribute}_{$id_customization}" class="alternate_item cart_item">
-							<td colspan="5">
+						<tr id="product_{$product.id_product}_{$product.id_product_attribute}_{$id_customization}" class="alternate_item cart_item customization product_customization_for_{$product.id_product}_{$product.id_product_attribute}">
+                            <td></td>                                                                                                
+							<td colspan="4">
 								{foreach from=$customization.datas key='type' item='datas'}
 									{if $type == $CUSTOMIZE_FILE}
 										<div class="customizationUploaded">

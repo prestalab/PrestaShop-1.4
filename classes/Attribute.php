@@ -76,7 +76,7 @@ class AttributeCore extends ObjectModel
 
 	public function delete()
 	{
-		if (($result = Db::getInstance()->ExecuteS('SELECT `id_product_attribute` FROM `'._DB_PREFIX_.'product_attribute_combination` WHERE `'.$this->identifier.'` = '.(int)($this->id))) === false)
+		if (($result = Db::getInstance()->ExecuteS('SELECT `id_product_attribute` FROM `'._DB_PREFIX_.'product_attribute_combination` WHERE `'.$this->identifier.'` = '.(int)($this->id))) != false)
 			return false;
 		$combinationIds = array();
 		if (Db::getInstance()->numRows())
@@ -88,6 +88,8 @@ class AttributeCore extends ObjectModel
 			if (Db::getInstance()->Execute('DELETE FROM `'._DB_PREFIX_.'product_attribute` WHERE `id_product_attribute` IN ('.implode(', ', $combinationIds).')') === false)
 				return false;
 		}
+		if(!$this->deleteImage())
+			return false;		
 		$return = parent::delete();
 		if ($return)
 			Module::hookExec('afterDeleteAttribute', array('id_attribute' => $this->id));

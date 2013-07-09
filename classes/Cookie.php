@@ -24,7 +24,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-class	CookieCore
+class CookieCore
 {
 	/** @var array Contain cookie content in a key => value format */
 	protected $_content;
@@ -49,7 +49,7 @@ class	CookieCore
 
 	/** @var array cipher tool initilization vector */
 	protected $_iv;
-
+	
 	protected $_modified = false;
 
 	protected $_allow_writing;
@@ -80,7 +80,7 @@ class	CookieCore
 			$this->_cipherTool = new Blowfish($this->_key, $this->_iv);
 		$this->update();
 	}
-
+	
 	public function disallowWriting()
 	{
 		$this->_allow_writing = false;
@@ -90,8 +90,8 @@ class	CookieCore
 	{
 		$r = '!(?:(\w+)://)?(?:(\w+)\:(\w+)@)?([^/:]+)?(?:\:(\d*))?([^#?]+)?(?:\?([^#]+))?(?:#(.+$))?!i';
 	    preg_match ($r, Tools::getHttpHost(false, false), $out);
-		if (preg_match('/^(((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]{1}[0-9]|[1-9]).)'.
-         '{1}((25[0-5]|2[0-4][0-9]|[1]{1}[0-9]{2}|[1-9]{1}[0-9]|[0-9]).)'.
+		if (preg_match('/^(((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]{1}[0-9]|[1-9]).)'. 
+         '{1}((25[0-5]|2[0-4][0-9]|[1]{1}[0-9]{2}|[1-9]{1}[0-9]|[0-9]).)'. 
          '{2}((25[0-5]|2[0-4][0-9]|[1]{1}[0-9]{2}|[1-9]{1}[0-9]|[0-9]){1}))$/', $out[4]))
 			return false;
 		if (!strstr(Tools::getHttpHost(false, false), '.'))

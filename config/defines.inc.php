@@ -96,6 +96,7 @@ define('_PS_SWIFT4_DIR_',            _PS_TOOL_DIR_.'swiftmailer/');
 define('_PS_FPDF_PATH_',            _PS_TOOL_DIR_.'fpdf/');
 define('_PS_TAASC_PATH_',            _PS_TOOL_DIR_.'taasc/');
 define('_PS_PEAR_XML_PARSER_PATH_', _PS_TOOL_DIR_.'pear_xml_parser/');
+define('_PS_CACHE_DIR_',			_PS_ROOT_DIR_.'/cache/');
 
 /* settings php */
 define('_PS_TRANS_PATTERN_',            '(.*[^\\\\])');

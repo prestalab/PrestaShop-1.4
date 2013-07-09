@@ -177,7 +177,7 @@ class ToolsCore
 	 *
 	 * @return string server name
 	 */
-	static function getServerName()
+	public static function getServerName()
 	{
 		if (isset($_SERVER['HTTP_X_FORWARDED_SERVER']) && $_SERVER['HTTP_X_FORWARDED_SERVER'])
 			return $_SERVER['HTTP_X_FORWARDED_SERVER'];
@@ -189,7 +189,7 @@ class ToolsCore
 	 *
 	 * @return string $remote_addr ip of client
 	 */
-	static function getRemoteAddr()
+	public static function getRemoteAddr()
 	{
 		// This condition is necessary when using CDN, don't remove it.
 		if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR'] &&
@@ -594,7 +594,7 @@ class ToolsCore
 		@include_once(_PS_TRANSLATIONS_DIR_.$iso.'/errors.php');
 
 		if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_ && $string == 'Fatal error')
-			return ('<pre>'.print_r(debug_backtrace(), true).'</pre>');
+			return ('<pre>'.Tools::safeOutput(print_r(debug_backtrace(), true)).'</pre>');
 		if (!is_array($_ERRORS))
 			return str_replace('"', '&quot;', $string);
 		$key = md5(str_replace('\'', '\\\'', $string));
@@ -896,9 +896,9 @@ class ToolsCore
 				return $fullPath.$path;
 			}
 		}
-		elseif ($categoryType == 'CMS')
+		elseif (strtoupper($categoryType) == 'CMS')
 		{
-			$category = new CMSCategory((int)($id_category), (int)($cookie->id_lang));
+			$category = new CMSCategory((int)$id_category, (int)$cookie->id_lang);
 			if (!Validate::isLoadedObject($category))
 				die(self::displayError());
 			$categoryLink = $link->getCMSCategoryLink($category);
@@ -1111,7 +1111,8 @@ class ToolsCore
 	 */
 	public static function dateYears()
 	{
-		for ($i = date('Y') - 10; $i >= 1900; $i--)
+		$tab = array();
+		for ($i = date('Y'); $i >= 1900; $i--)
 			$tab[] = $i;
 		return $tab;
 	}
@@ -1160,7 +1161,7 @@ class ToolsCore
 		return time() + microtime();
 	}
 
-	static function strtolower($str)
+	public static function strtolower($str)
 	{
 		if (is_array($str))
 			return false;
@@ -1169,7 +1170,7 @@ class ToolsCore
 		return strtolower($str);
 	}
 
-	static function strlen($str, $encoding = 'UTF-8')
+	public static function strlen($str, $encoding = 'UTF-8')
 	{
 		if (is_array($str))
 			return false;
@@ -1179,14 +1180,14 @@ class ToolsCore
 		return strlen($str);
 	}
 
-	static function stripslashes($string)
+	public static function stripslashes($string)
 	{
 		if (_PS_MAGIC_QUOTES_GPC_)
 			$string = stripslashes($string);
 		return $string;
 	}
 
-	static function strtoupper($str)
+	public static function strtoupper($str)
 	{
 		if (is_array($str))
 			return false;
@@ -1195,7 +1196,7 @@ class ToolsCore
 		return strtoupper($str);
 	}
 
-	static function substr($str, $start, $length = false, $encoding = 'utf-8')
+	public static function substr($str, $start, $length = false, $encoding = 'utf-8')
 	{
 		if (is_array($str))
 			return false;
@@ -1204,7 +1205,7 @@ class ToolsCore
 		return substr($str, $start, ($length === false ? self::strlen($str) : (int)($length)));
 	}
 
-	static function ucfirst($str)
+	public static function ucfirst($str)
 	{
 		return self::strtoupper(self::substr($str, 0, 1)).self::substr($str, 1);
 	}
@@ -1337,14 +1338,16 @@ class ToolsCore
 			curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
 			curl_setopt($curl, CURLOPT_TIMEOUT, $curl_timeout);
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-			$opts = stream_context_get_options($stream_context);
-			if (isset($opts['http']['method']) && Tools::strtolower($opts['http']['method']) == 'post')
-			{
-				curl_setopt($curl, CURLOPT_POST, true);
-				if (isset($opts['http']['content']))
+			if ($stream_context != null) {
+				$opts = stream_context_get_options($stream_context);
+				if (isset($opts['http']['method']) && Tools::strtolower($opts['http']['method']) == 'post')
 				{
-					parse_str($opts['http']['content'], $datas);
-					curl_setopt($curl, CURLOPT_POSTFIELDS, $datas);
+					curl_setopt($curl, CURLOPT_POST, true);
+					if (isset($opts['http']['content']))
+					{
+						parse_str($opts['http']['content'], $datas);
+						curl_setopt($curl, CURLOPT_POSTFIELDS, $datas);
+					}
 				}
 			}
 			$content = curl_exec($curl);
@@ -1663,7 +1666,7 @@ class ToolsCore
 				else
 					$content = $compressed_css_files[$media];
 				file_put_contents($cache_filename, $content);
-				chmod($cache_filename, 0777);
+				chmod($cache_filename, 0775);
 			}
 			$compressed_css_files[$media] = $cache_filename;
 		}
@@ -1739,7 +1742,7 @@ class ToolsCore
 					'" */'."\n".$content;
 
 			file_put_contents($compressed_js_path, $content);
-			chmod($compressed_js_path, 0777);
+			chmod($compressed_js_path, 0775);
 		}
 
 		// rebuild the original js_files array
@@ -1924,7 +1927,7 @@ FileETag INode MTime Size
 </IfModule>'."\n");
 		}
 		fclose($writeFd);
-
+		@chmod($path, 0775);
 		Module::hookExec('afterCreateHtaccess');
 
 		return true;
@@ -2145,6 +2148,29 @@ FileETag INode MTime Size
 			return true;
 		}
 	}
+
+	public static function chmodr($path, $filemode)
+	{
+	    if (!is_dir($path))
+	        return @chmod($path, $filemode);
+	    $dh = opendir($path);
+	    while (($file = readdir($dh)) !== false) {
+	        if($file != '.' && $file != '..') {
+	            $fullpath = $path.'/'.$file;
+	            if(is_link($fullpath))
+	                return false;
+	            elseif(!is_dir($fullpath) && !@chmod($fullpath, $filemode))
+	                    return false;
+	            elseif(!self::chmodr($fullpath, $filemode))
+	                return false;
+	        }
+	    }
+	    closedir($dh);
+	    if(@chmod($path, $filemode))
+	        return true;
+	    else
+	        return false;
+	}	
 
 	/**
 	 * Get products order field name for queries.

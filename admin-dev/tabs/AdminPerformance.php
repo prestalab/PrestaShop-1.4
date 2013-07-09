@@ -78,6 +78,8 @@ class AdminPerformance extends AdminTab
 					Cache::getInstance()->flush();
 				elseif($caching_system == 'CacheXCache' && $cache_active && !_PS_CACHE_ENABLED_ && _PS_CACHING_SYSTEM_ == 'CacheXCache')
 					Cache::getInstance()->flush();
+				elseif ( _PS_CACHING_SYSTEM_ != 'CacheFS' ||  !$cache_active ||  !_PS_CACHE_ENABLED_ ||  (int)Tools::getValue('ps_cache_fs_directory_depth') == 0)
+					CacheFS::deleteCacheDirectory();					
 				if (!sizeof($this->_errors))
 				{
 					$settings = preg_replace('/define\(\'_PS_CACHE_ENABLED_\', \'([0-9])\'\);/Ui', 'define(\'_PS_CACHE_ENABLED_\', \''.(int)$cache_active.'\');', $settings);

@@ -187,7 +187,7 @@ INSERT INTO `PREFIX_configuration` (`id_configuration`, `name`, `value`, `date_a
 (97, 'PS_GEOLOCATION_BEHAVIOR', '0', NOW(), NOW()),
 (98, 'PS_LOCALE_LANGUAGE', '', NOW(), NOW()),
 (99, 'PS_LOCALE_COUNTRY', '', NOW(), NOW()),
-(100, 'PS_ATTACHMENT_MAXIMUM_SIZE', '2', NOW(), NOW()),
+(100, 'PS_ATTACHMENT_MAXIMUM_SIZE', '4', NOW(), NOW()),
 (101, 'PS_SMARTY_CACHE', '0', NOW(), NOW()),
 (102, 'PS_DIMENSION_UNIT', 'cm', NOW(), NOW()),
 (103, 'PS_FORCE_SMARTY_2', '0', NOW(), NOW()),
@@ -223,8 +223,8 @@ INSERT INTO `PREFIX_configuration` (`id_configuration`, `name`, `value`, `date_a
 (133, 'PS_COOKIE_LIFETIME_FO', '480', NOW(), NOW()),
 (134, 'PS_COOKIE_LIFETIME_BO', '480', NOW(), NOW()),
 (135, 'PS_RESTRICT_DELIVERED_COUNTRIES', '0', NOW(), NOW()),
-(136, 'PS_LIMIT_UPLOAD_IMAGE_VALUE', '2', NOW(), NOW()),
-(137, 'PS_LIMIT_UPLOAD_FILE_VALUE', '2', NOW(), NOW()),
+(136, 'PS_LIMIT_UPLOAD_IMAGE_VALUE', '4', NOW(), NOW()),
+(137, 'PS_LIMIT_UPLOAD_FILE_VALUE', '4', NOW(), NOW()),
 (138, 'PS_CART_FOLLOWING', 1, NOW(), NOW()),
 (139, 'PS_TAX_DISPLAY_ALL', 0, NOW(), NOW());
 
@@ -356,7 +356,7 @@ INSERT INTO `PREFIX_country` (`id_country`, `id_zone`, `iso_code`, `call_prefix`
 (158, 5, 'NC', 687, 1, 0, 0, 1, '', 1),(159, 8, 'NI', 505, 1, 0, 0, 1, 'NNNNNN', 1),(160, 4, 'NE', 227, 1, 0, 0, 1, '', 1),(161, 5, 'NU', 683, 1, 0, 0, 1, '', 1),(162, 5, 'NF', 0, 1, 0, 0, 1, '', 1),
 (163, 5, 'MP', 0, 1, 0, 0, 1, '', 1),(164, 3, 'OM', 968, 1, 0, 0, 1, '', 1),(165, 3, 'PK', 92, 1, 0, 0, 1, '', 1),(166, 5, 'PW', 680, 1, 0, 0, 1, '', 1),(167, 3, 'PS', 0, 1, 0, 0, 1, '', 1),
 (168, 8, 'PA', 507, 1, 0, 0, 1, 'NNNNNN', 1),(169, 5, 'PG', 675, 1, 0, 0, 1, '', 1),(170, 6, 'PY', 595, 1, 0, 0, 1, '', 1),(171, 6, 'PE', 51, 1, 0, 0, 1, '', 1),(172, 3, 'PH', 63, 1, 0, 0, 1, 'NNNN', 1),
-(173, 5, 'PN', 0, 1, 0, 0, 1, 'LLLL NLL', 1),(174, 8, 'PR', 0, 1, 0, 0, 1, 'NNNNN', 1),(175, 3, 'QA', 974, 1, 0, 0, 1, '', 1),(176, 4, 'RE', 262, 1, 0, 0, 1, '', 1),(177, 7, 'RU', 7, 1, 0, 1, 1, 'NNNNNN', 1),
+(173, 5, 'PN', 0, 1, 0, 0, 1, 'LLLL NLL', 1),(174, 8, 'PR', 0, 1, 0, 0, 1, 'NNNNN', 1),(175, 3, 'QA', 974, 1, 0, 0, 1, '', 1),(176, 4, 'RE', 262, 1, 0, 0, 1, '', 1),(177, 7, 'RU', 7, 1, 0, 0, 1, 'NNNNNN', 1),
 (178, 4, 'RW', 250, 1, 0, 0, 1, '', 1),(179, 8, 'BL', 0, 1, 0, 0, 1, '', 1),(180, 8, 'KN', 0, 1, 0, 0, 1, '', 1),(181, 8, 'LC', 0, 1, 0, 0, 1, '', 1),(182, 8, 'MF', 0, 1, 0, 0, 1, '', 1),
 (183, 8, 'PM', 508, 1, 0, 0, 1, '', 1),(184, 8, 'VC', 0, 1, 0, 0, 1, '', 1),(185, 5, 'WS', 685, 1, 0, 0, 1, '', 1),(186, 7, 'SM', 378, 1, 0, 0, 1, 'NNNNN', 1),(187, 4, 'ST', 239, 1, 0, 0, 1, '', 1),
 (188, 3, 'SA', 966, 1, 0, 0, 1, '', 1),(189, 4, 'SN', 221, 1, 0, 0, 1, '', 1),(190, 7, 'RS', 381, 1, 0, 0, 1, 'NNNNN', 1),(191, 4, 'SC', 248, 1, 0, 0, 1, '', 1),(192, 4, 'SL', 232, 1, 0, 0, 1, '', 1),
@@ -1092,8 +1092,8 @@ INSERT INTO `PREFIX_meta_lang` (`id_meta`, `id_lang`, `title`, `description`, `k
 (25, 5, 'Ospite di monitoraggio', '', '', 'ospite-monitoraggio');
 
 /* Stats */
-INSERT INTO `PREFIX_operating_system` (`name`) VALUES ('Windows XP'),('Windows Vista'),('MacOsX'),('Linux');
-INSERT INTO `PREFIX_web_browser` (`name`) VALUES ('Safari'),('Firefox 2.x'),('Firefox 3.x'),('Opera'),('IE 6.x'),('IE 7.x'),('IE 8.x'),('Google Chrome');
+INSERT INTO `PREFIX_operating_system` (`name`) VALUES ('Windows XP'),('Windows Vista'),('Windows 7'),('Windows 8'),('MacOsX'),('Linux'),('Android');
+INSERT INTO `PREFIX_web_browser` (`name`) VALUES ('Safari'),('Safari iPad'),('Firefox'),('Opera'),('IE 6'),('IE 7'),('IE 8'),('IE 9'),('IE 10'),('Chrome');
 INSERT INTO `PREFIX_page_type` (`id_page_type`, `name`) VALUES
 (13, 'authentication.php'),(11, 'best-sales.php'),(2, 'category.php'),(7, 'cms.php'),(12, 'contact-form.php'),(5, 'index.php'),(4, 'manufacturer.php'),
 (3, 'order.php'),(10, 'prices-drop.php'),(1, 'product.php'),(8, 'search.php'),(14, 'sitemap.php'),(9, 'stores.php'),(6, 'supplier.php');

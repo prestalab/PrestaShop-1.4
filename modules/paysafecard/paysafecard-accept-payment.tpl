@@ -1,6 +1,5 @@
-<?php
-/*
-* 2007-2013 PrestaShop
+{*
+* 2007-2012 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,32 +18,25 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2012 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
-*/
+*}
 
-include_once(dirname(__FILE__).'/../../../config/config.inc.php');
-include_once(dirname(__FILE__).'/../../../init.php');
-include_once(dirname(__FILE__).'/../paypal.php');
-
-// Ajax query
-$quantity = Tools::getValue('get_qty');
-
-if ($quantity && $quantity > 0)
-{
-	/* Ajax response */
-	$id_product = (int)Tools::getValue('id_product');
-	$id_product_attribute = (int)Tools::getValue('id_product_attribute');
-	$product_quantity = Product::getQuantity($id_product, $id_product_attribute);
-	
-	if ($product_quantity <= 0)
-	{
-		$paypal = new PayPal();
-		echo $paypal->l('This product is no longer in stock with those attributes but is available with others');
-	}
-	else
-		echo $product_quantity;
-}
-
-die;
+<br />
+<fieldset style="width: 400px">
+			<legend><img src="../img/admin/tab-customers.gif" />{$payment_name}</legend>
+			{if $error}
+				<span style="color: red; font-weight: bold;">{$error}</span>
+			{/if}
+			
+			<p style="font-weight: bold;">{l s='Payment has not been accepted yet:' mod='paysafecard'}</p>
+			<p>
+			<form action="{$action}" method="POST">
+				<input type="text" name="ps_amount" size="8" value="{$amount}" />{$currency} 
+				<input type="submit" class="button" name="acceptPayment" value="{l s='Accept Payment' mod='paysafecard'}" />
+				<input type="submit" class="button" name="releasePayment" value="{l s='Release amount' mod='paysafecard'}" />				
+			</form>
+			</p>
+</fieldset>
+			

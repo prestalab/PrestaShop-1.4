@@ -1,6 +1,5 @@
-<?php
-/*
-* 2007-2013 PrestaShop
+{*
+* 2007-2012 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,32 +18,21 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2012 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
-*/
+*}
 
-include_once(dirname(__FILE__).'/../../../config/config.inc.php');
-include_once(dirname(__FILE__).'/../../../init.php');
-include_once(dirname(__FILE__).'/../paypal.php');
+<script type="text/javascript">
+//<![CDATA[
+{literal}function initTreepodia() {{/literal}
+    {foreach from=$products item=product}
+		{section name=cpt start=0 loop=$product.product_quantity step=1}
+    {literal}Treepodia.getProduct('{/literal}{$account_id}{literal}', '{/literal}{$product.product_id}{literal}').logAddToCart();{/literal}
+		{/section}
+    {/foreach}
+{literal}}{/literal}
 
-// Ajax query
-$quantity = Tools::getValue('get_qty');
-
-if ($quantity && $quantity > 0)
-{
-	/* Ajax response */
-	$id_product = (int)Tools::getValue('id_product');
-	$id_product_attribute = (int)Tools::getValue('id_product_attribute');
-	$product_quantity = Product::getQuantity($id_product, $id_product_attribute);
-	
-	if ($product_quantity <= 0)
-	{
-		$paypal = new PayPal();
-		echo $paypal->l('This product is no longer in stock with those attributes but is available with others');
-	}
-	else
-		echo $product_quantity;
-}
-
-die;
+    {literal}document.write(unescape("%3Cscript src='" + ((document.location.protocol == 'https:') ? 'https://' : 'http://') + "api.treepodia.com/video/Treepodia.js' type='text/javascript'%3E%3C/script%3E"));{/literal}
+//]]>
+</script>

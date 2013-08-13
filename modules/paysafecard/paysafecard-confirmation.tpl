@@ -1,13 +1,12 @@
-<?php
-/*
+{*
 * 2007-2012 PrestaShop
 *
 * NOTICE OF LICENSE
 *
-* This source file is subject to the Open Software License (OSL 3.0)
+* This source file is subject to the Academic Free License (AFL 3.0)
 * that is bundled with this package in the file LICENSE.txt.
 * It is also available through the world-wide-web at this URL:
-* http://opensource.org/licenses/osl-3.0.php
+* http://opensource.org/licenses/afl-3.0.php
 * If you did not receive a copy of the license and are unable to
 * obtain it through the world-wide-web, please send an email
 * to license@prestashop.com so we can send you a copy immediately.
@@ -20,17 +19,13 @@
 *
 *  @author PrestaShop SA <contact@prestashop.com>
 *  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision: 15636 $
-*  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+*  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
-*/
-				    	
-header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
-						
-header("Cache-Control: no-store, no-cache, must-revalidate");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
-						
-header("Location: ../");
-exit;
+*}
+
+<p>{l s='Your order on' mod='paysafecard'} <span class="bold">{$shop_name}</span> {l s='is complete.' mod='paysafecard'}
+	<br /><br />
+	{l s='You have chosen the' mod='paysafecard'} {$payment_name} {l s='method.' mod='paysafecard'}
+	<br /><br /><span class="bold">{l s='Your order will be sent very soon.' mod='paysafecard'}</span>
+	<br /><br />{l s='For any questions or for further information, please contact our' mod='paysafecard'} <a href="{$link->getPageLink('contact', true)}">{l s='customer support' mod='paysafecard'}</a>.
+</p>

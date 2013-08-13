@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2012 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,32 +19,28 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2012 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-include_once(dirname(__FILE__).'/../../../config/config.inc.php');
-include_once(dirname(__FILE__).'/../../../init.php');
-include_once(dirname(__FILE__).'/../paypal.php');
+if (!defined('_PS_VERSION_'))
+	exit;
 
-// Ajax query
-$quantity = Tools::getValue('get_qty');
-
-if ($quantity && $quantity > 0)
+class PayPal extends PayPalAbstract
 {
-	/* Ajax response */
-	$id_product = (int)Tools::getValue('id_product');
-	$id_product_attribute = (int)Tools::getValue('id_product_attribute');
-	$product_quantity = Product::getQuantity($id_product, $id_product_attribute);
-	
-	if ($product_quantity <= 0)
+	public function validateOrder($id_cart, $id_order_state, $amountPaid, $paymentMethod = 'Unknown', $message = null, $transaction = array(), $currency_special = null, $dont_touch_amount = false, $secure_key = false)
 	{
-		$paypal = new PayPal();
-		echo $paypal->l('This product is no longer in stock with those attributes but is available with others');
-	}
-	else
-		echo $product_quantity;
-}
+		if ($this->active)
+		{
+			// Set transaction details if pcc is defined in PaymentModule class_exists
+			if (isset($this->pcc))
+				$this->pcc->transaction_id = (isset($transaction['transaction_id']) ? $transaction['transaction_id'] : '');
 
-die;
+			parent::validateOrder((int)$id_cart, (int)$id_order_state, (float)$amountPaid, $paymentMethod, $message, $transaction, $currency_special, $dont_touch_amount, $secure_key);
+
+			if (count($transaction) > 0)
+				PayPalOrder::saveOrder((int)$this->currentOrder, $transaction);
+		}
+	}
+}

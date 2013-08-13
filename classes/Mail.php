@@ -279,6 +279,6 @@ class MailCore
 			"customstr" => (preg_match("/^(?<!\\.)[a-z0-9\\.]+(?!\\.)\$/iD", $idstring) ? $idstring : "swift") ,
 			"hostname" => (isset($_SERVER["SERVER_NAME"]) ? $_SERVER["SERVER_NAME"] : php_uname("n")),
 		);
-		return vsprintf("<%s.%d.%s@%s>", $midparams);
+		return vsprintf("%s.%d.%s@%s", $midparams);
 	}
 }

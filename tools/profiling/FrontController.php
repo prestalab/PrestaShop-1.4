@@ -237,7 +237,7 @@ class FrontController extends FrontControllerCore
 	{
 		$start_memory = memory_get_usage();
 		try {
-			$tmp = Tools::unSerialize(serialize($var));
+			$tmp = unserialize(serialize($var));
 		} catch (Exception $e) {
 			$tmp = strlen((string)$var);
 		}

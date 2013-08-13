@@ -10,6 +10,10 @@ body {
 /*	behavior: url(csshover.htc); */
 }
 
+table{
+	width:100%;
+}
+
 .float {float:left}
 .floatr {float:right}
 
@@ -319,8 +323,7 @@ select optgroup option {
 /* STRUCTURE */
 
 #container {
-	width: 960px;
-	margin: 0 auto 2em auto;
+	margin: 0 50px 2em 50px;
 	text-align: left;
 }
 

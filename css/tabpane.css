@@ -1,7 +1,5 @@
 .tab-pane {
-	float: 			left;
-	position:		relative;
-	width:			928px;
+	width:			100%;
 }
 
 .tab-pane-tax {

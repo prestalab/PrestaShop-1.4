@@ -76445,7 +76445,7 @@ INSERT INTO `PREFIX_configuration` (`name`, `value`) VALUES
 INSERT IGNORE INTO `PREFIX_configuration` (`name`, `value`) VALUES
 ('PS_PDF_ENCODING_RU', 'cp1251');
 INSERT IGNORE INTO `PREFIX_configuration` (`name`, `value`) VALUES
-('PS_PDF_FONT_RU', 'courier');
+('PS_PDF_FONT_RU', 'verdana');
 
 INSERT INTO `PREFIX_hook` (`name`, `title`, `description`, `position`) VALUES ('cmsFooter', 'CMS page footer', NULL, 0);
 INSERT INTO `PREFIX_hook` (`name`, `title`, `description`, `position`) VALUES ('cmsCategory', 'CMS category page footer', NULL, 0);

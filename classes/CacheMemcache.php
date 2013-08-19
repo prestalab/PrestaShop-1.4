@@ -96,7 +96,7 @@ class CacheMemcacheCore extends Cache
 	{
 		if (!$this->is_connected)
 			return false;
-		return $this->memcache->set($key, $value, 0, $ttl);
+		return $this->memcache->set(_COOKIE_IV_.$key, $value, 0, $ttl);
 	}
 
 	/**
@@ -106,7 +106,7 @@ class CacheMemcacheCore extends Cache
 	{
 		if (!$this->is_connected)
 			return false;
-		return $this->memcache->get($key);
+		return $this->memcache->get(_COOKIE_IV_.$key);
 	}
 
 	/**
@@ -116,7 +116,7 @@ class CacheMemcacheCore extends Cache
 	{
 		if (!$this->is_connected)
 			return false;
-		return isset($this->keys[$key]);
+		return isset($this->keys[_COOKIE_IV_.$key]);
 	}
 
 	/**
@@ -126,7 +126,7 @@ class CacheMemcacheCore extends Cache
 	{
 		if (!$this->is_connected)
 			return false;
-		return $this->memcache->delete($key);
+		return $this->memcache->delete(_COOKIE_IV_.$key);
 	}
 
 	/**
